@@ -22,9 +22,9 @@ struct ContentView: View {
                 }
                 .tag(2)
             NavigationStack {
-                LikesView()
-                    .navigationTitle("Likes")
-                    .navigationBarTitleDisplayMode(.large)
+//                NotificationCenterEntry()
+//                    .navigationTitle("Likes")
+//                    //.navigationBarTitleDisplayMode(.large)
             }
             .tabItem {
                 Image("heart")
