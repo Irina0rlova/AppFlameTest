@@ -1,4 +1,5 @@
 import SwiftUI
+import NotificationCenterFeature
 
 struct ContentView: View {
     @State private var selectedTab = 3 // Start with the 4th tab (zero-based)
@@ -22,9 +23,9 @@ struct ContentView: View {
                 }
                 .tag(2)
             NavigationStack {
-//                NotificationCenterEntry()
-//                    .navigationTitle("Likes")
-//                    //.navigationBarTitleDisplayMode(.large)
+                NotificationCenterFeature().makeModuleView()
+                    .navigationTitle("Likes")
+                    .navigationBarTitleDisplayMode(.large)
             }
             .tabItem {
                 Image("heart")

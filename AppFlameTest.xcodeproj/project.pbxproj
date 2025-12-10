@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CC52E4382EEA17DC00CBD4A6 /* NotificationCenterFeature in Frameworks */ = {isa = PBXBuildFile; productRef = CC52E4372EEA17DC00CBD4A6 /* NotificationCenterFeature */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CC3D6A9F2EE9B50700356E1B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC52E4382EEA17DC00CBD4A6 /* NotificationCenterFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 				CC3D6A932EE9B50600356E1B /* AppFlameTest */,
 				CC3D6AA12EE9B50700356E1B /* AppFlameTestTests */,
 				CC3D6AAB2EE9B50700356E1B /* AppFlameTestUITests */,
+				CC52E4362EEA17DC00CBD4A6 /* Frameworks */,
 				CC3D6A922EE9B50600356E1B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +96,13 @@
 				CC3D6AA82EE9B50700356E1B /* AppFlameTestUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CC52E4362EEA17DC00CBD4A6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +125,7 @@
 			);
 			name = AppFlameTest;
 			packageProductDependencies = (
+				CC52E4372EEA17DC00CBD4A6 /* NotificationCenterFeature */,
 			);
 			productName = AppFlameTest;
 			productReference = CC3D6A912EE9B50600356E1B /* AppFlameTest.app */;
@@ -196,7 +210,7 @@
 			mainGroup = CC3D6A882EE9B50600356E1B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CC3D6AC12EEA06E600356E1B /* XCLocalSwiftPackageReference "Packages" */,
+				CC2CDE5B2EEA14BA005829C8 /* XCLocalSwiftPackageReference "NotificationCenterFeature" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CC3D6A922EE9B50600356E1B /* Products */;
@@ -575,11 +589,19 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CC3D6AC12EEA06E600356E1B /* XCLocalSwiftPackageReference "Packages" */ = {
+		CC2CDE5B2EEA14BA005829C8 /* XCLocalSwiftPackageReference "NotificationCenterFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages;
+			relativePath = NotificationCenterFeature;
 		};
 /* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CC52E4372EEA17DC00CBD4A6 /* NotificationCenterFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC2CDE5B2EEA14BA005829C8 /* XCLocalSwiftPackageReference "NotificationCenterFeature" */;
+			productName = NotificationCenterFeature;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CC3D6A892EE9B50600356E1B /* Project object */;
 }
