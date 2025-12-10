@@ -29,9 +29,22 @@
 		CC3D6AA82EE9B50700356E1B /* AppFlameTestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AppFlameTestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CC3D6ABF2EE9FF1600356E1B /* Exceptions for "AppFlameTest" folder in "AppFlameTest" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Packages,
+			);
+			target = CC3D6A902EE9B50600356E1B /* AppFlameTest */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CC3D6A932EE9B50600356E1B /* AppFlameTest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CC3D6ABF2EE9FF1600356E1B /* Exceptions for "AppFlameTest" folder in "AppFlameTest" target */,
+			);
 			path = AppFlameTest;
 			sourceTree = "<group>";
 		};
@@ -195,6 +208,9 @@
 			);
 			mainGroup = CC3D6A882EE9B50600356E1B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CC3D6AC02EEA01AE00356E1B /* XCLocalSwiftPackageReference "Packages" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CC3D6A922EE9B50600356E1B /* Products */;
 			projectDirPath = "";
@@ -570,6 +586,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CC3D6AC02EEA01AE00356E1B /* XCLocalSwiftPackageReference "Packages" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages;
+		};
+/* End XCLocalSwiftPackageReference section */
 	};
 	rootObject = CC3D6A892EE9B50600356E1B /* Project object */;
 }

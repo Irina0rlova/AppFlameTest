@@ -21,12 +21,16 @@ struct ContentView: View {
                     Image("square")
                 }
                 .tag(2)
-            Text("Likes")
-                .tabItem {
-                    Image("heart")
-                }
-                .tag(3)
-                .badge(notificationCount)
+            NavigationStack {
+                LikesView()
+                    .navigationTitle("Likes")
+                    .navigationBarTitleDisplayMode(.large)
+            }
+            .tabItem {
+                Image("heart")
+            }
+            .tag(3)
+            .badge(notificationCount)
             Text("Profile")
                 .tabItem {
                     Image("person")
