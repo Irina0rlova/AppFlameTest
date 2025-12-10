@@ -1,21 +1,38 @@
-//
-//  ContentView.swift
-//  AppFlameTest
-//
-//  Created by Iryna Orlova on 10.12.2025.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedTab = 3 // Start with the 4th tab (zero-based)
+    @State private var notificationCount = 5 // Example notification count
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            Text("Hilly")
+                .tabItem {
+                    Image("hilly")
+                }
+                .tag(0)
+            Text("Chat")
+                .tabItem {
+                    Image("chat")
+                }
+                .tag(1)
+            Text("Square")
+                .tabItem {
+                    Image("square")
+                }
+                .tag(2)
+            Text("Likes")
+                .tabItem {
+                    Image("heart")
+                }
+                .tag(3)
+                .badge(notificationCount)
+            Text("Profile")
+                .tabItem {
+                    Image("person")
+                }
+                .tag(4)
         }
-        .padding()
     }
 }
 
