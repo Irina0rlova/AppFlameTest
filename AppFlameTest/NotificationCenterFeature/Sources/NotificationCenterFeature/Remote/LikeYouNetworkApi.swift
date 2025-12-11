@@ -18,7 +18,7 @@ public class LikeYouNetworkApi: NetworkApi {
         for i in ((page - 1) * batchSize)..<(page * batchSize) {
             let likeItem = LikeItem(
                 id: UUID(),
-                userName: "User\(i)",
+                userName: "User \(i)",
                 avatarURL: URL(string: "https://randomuser.me/api/portraits/men/\(i+1).jpg"),
                 isBlurred: true
             )
