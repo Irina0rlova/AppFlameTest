@@ -1,0 +1,90 @@
+import XCTest
+@testable import NotificationCenterFeature
+
+final class LikeYouNetworkApiTests: XCTestCase {
+    var networkApi: LikeYouNetworkApi!
+    
+    override func setUpWithError() throws {
+        super.setUp()
+        networkApi = LikeYouNetworkApi()
+    }
+    
+    override func tearDownWithError() throws {
+        networkApi = nil
+        super.tearDown()
+    }
+    
+    func testFetchData_Success() async throws {
+        let expectation = XCTestExpectation(description: "Successfully fetched data")
+        
+        await networkApi.fetchData(page: 1, batchSize: 10) { result in
+            switch result {
+            case .success(let likeItems):
+                XCTAssertNotNil(likeItems)
+                XCTAssertEqual(likeItems?.count, 10)
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success, but got failure with error: \(error)")
+            }
+        }
+        
+        await fulfillment(of: [expectation], timeout: 6)
+    }
+    
+    func testFetchData_SuccessNextPage() async throws {
+        let expectation = XCTestExpectation(description: "Successfully fetched data")
+        
+        await networkApi.fetchData(page: 3, batchSize: 10) { result in
+            switch result {
+            case .success(let likeItems):
+                XCTAssertNotNil(likeItems)
+                XCTAssertEqual(likeItems?.count, 10)
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success, but got failure with error: \(error)")
+            }
+        }
+        
+        await fulfillment(of: [expectation], timeout: 6)
+    }
+    
+    func testFetchData_Failure() async throws {
+        let expectation = XCTestExpectation(description: "Failed to fetch data due to error")
+        
+        let mockApi = MockLikeYouNetworkApi()
+        await mockApi.fetchData(page: 1, batchSize: 10) { result in
+            switch result {
+            case .success:
+                XCTFail("Expected failure, but got success")
+            case .failure(let error):
+                XCTAssertNotNil(error)
+                expectation.fulfill()
+            }
+        }
+        
+        await fulfillment(of: [expectation], timeout: 2)
+    }
+    
+    func testGenerateLikeItems_Sleep() async throws {
+        let expectation = XCTestExpectation(description: "Completed with delay")
+        
+        await networkApi.fetchData(page: 1, batchSize: 10) { result in
+            switch result {
+            case .success(let likeItems):
+                XCTAssertNotNil(likeItems)
+                XCTAssertEqual(likeItems?.count, 10)
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Expected success, but got failure with error: \(error)")
+            }
+        }
+        
+        await fulfillment(of: [expectation], timeout: 6)
+    }
+}
+
+class MockLikeYouNetworkApi: LikeYouNetworkApi {
+    override func fetchData(page: Int, batchSize: Int, completion: @escaping (Result<[LikeItem]?, any Error>) -> Void) async {
+        completion(.failure(NSError(domain: "MockError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Mock failure"])))
+    }
+}

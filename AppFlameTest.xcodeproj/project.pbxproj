@@ -31,6 +31,7 @@
 		CC3D6A912EE9B50600356E1B /* AppFlameTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppFlameTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC3D6A9E2EE9B50700356E1B /* AppFlameTestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AppFlameTestTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC3D6AA82EE9B50700356E1B /* AppFlameTestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AppFlameTestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CCE0548A2EEA2DF100BE373E /* AppFlameTest.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = AppFlameTest.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +81,7 @@
 		CC3D6A882EE9B50600356E1B = {
 			isa = PBXGroup;
 			children = (
+				CCE0548A2EEA2DF100BE373E /* AppFlameTest.xctestplan */,
 				CC3D6A932EE9B50600356E1B /* AppFlameTest */,
 				CC3D6AA12EE9B50700356E1B /* AppFlameTestTests */,
 				CC3D6AAB2EE9B50700356E1B /* AppFlameTestUITests */,
