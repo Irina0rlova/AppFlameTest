@@ -19,7 +19,10 @@ let package = Package(
         ),
         .testTarget(
             name: "NotificationCenterFeatureTests",
-            dependencies: ["NotificationCenterFeature"]
+            dependencies: [
+                "NotificationCenterFeature"
+            ],
+            path: "Tests"
         )
     ]
 )
