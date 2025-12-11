@@ -14,6 +14,10 @@ xcuserdata/
 *.dSYM
 .DS_Store
 
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+
 ## Playgrounds
 timeline.xctimeline
 playground.xcworkspace
@@ -30,10 +34,10 @@ playground.xcworkspace
 # hence it is not needed unless you have added a package configuration file to your project
 # .swiftpm
 
-.build/
-
 # CocoaPods
-#
+.build/
+.swiftpm/
+
 # We recommend against adding the Pods directory to your .gitignore. However
 # you should judge for yourself, the pros and cons are mentioned at:
 # https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
@@ -42,6 +46,11 @@ playground.xcworkspace
 #
 # Add this line if you want to avoid checking in source code from the Xcode workspace
 # *.xcworkspace
+
+# CocoaPods
+Pods/
+*.xcworkspace
+!Podfile.lock
 
 # Carthage
 #
@@ -61,3 +70,14 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Archives
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcarchive
+
+# Misc
+.DS_Store
+*.swp
+*.lock
