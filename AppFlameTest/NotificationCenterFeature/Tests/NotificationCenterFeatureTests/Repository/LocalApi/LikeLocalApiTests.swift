@@ -37,10 +37,16 @@ struct LikeLocalApiTests {
 
     @Test
     func testUpdateOverwritesPreviousData() {
-        let firstItems = [LikeItem(id: UUID(), userName: "First")]
+        let ids = [UUID(), UUID(), UUID()]
+        let firstItems = [LikeItem(id: ids[0], userName: "First")]
         let secondItems = [
-            LikeItem(id: UUID(), userName: "Second"),
-            LikeItem(id: UUID(), userName: "Third")
+            LikeItem(id: ids[1], userName: "Second"),
+            LikeItem(id: ids[2], userName: "Third")
+        ]
+        let expectedItems = [
+            LikeItem(id: ids[0], userName: "First"),
+            LikeItem(id: ids[1], userName: "Second"),
+            LikeItem(id: ids[2], userName: "Third")
         ]
         let api = LikeLocalApi()
         api.createOrUpdate(data: firstItems)
@@ -48,7 +54,7 @@ struct LikeLocalApiTests {
         #expect(api.get() == firstItems)
         
         api.createOrUpdate(data: secondItems)
-        #expect(api.get()?.count == 2)
-        #expect(api.get() == secondItems)
+        #expect(api.get()?.count == 3)
+        #expect(api.get() == expectedItems)
     }
 }

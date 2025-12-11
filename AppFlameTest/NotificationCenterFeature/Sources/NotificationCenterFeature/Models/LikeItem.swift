@@ -1,6 +1,6 @@
 import Foundation
 
-public struct LikeItem: Identifiable, Equatable, Hashable, Codable {
+public struct LikeItem: Identifiable, Equatable, Hashable, Codable, Sendable {
     public let id: UUID
     public var userName: String
     public var avatarURL: URL?

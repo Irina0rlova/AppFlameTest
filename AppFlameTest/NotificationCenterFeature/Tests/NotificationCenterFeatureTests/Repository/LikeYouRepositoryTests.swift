@@ -34,9 +34,10 @@ final class LikeYouRepositoryTests: XCTestCase {
         mockStore.storedData = nil
         
         let expectation = self.expectation(description: "Completion called")
+        let store = mockStore // avoid capturing self in @Sendable closure
         await repository.load(page: 1, batchSize: 10) { error in
             XCTAssertNil(error)
-            XCTAssertEqual(self.mockStore.storedData, likeItems)
+            XCTAssertEqual(store?.storedData, likeItems)
             expectation.fulfill()
         }
         
@@ -51,9 +52,10 @@ final class LikeYouRepositoryTests: XCTestCase {
         }
         
         let expectation = self.expectation(description: "Completion called")
+        let store = mockStore
         await repository.load(page: 1, batchSize: 10) { error in
             XCTAssertEqual(error as? NSError, mockError)
-            XCTAssertNil(self.mockStore.storedData) // Data should not be stored
+            XCTAssertNil(store?.storedData) // Data should not be stored
             expectation.fulfill()
         }
         
@@ -75,19 +77,17 @@ final class LikeYouRepositoryTests: XCTestCase {
     }
 }
 
-
-
-class MockApi: NetworkApi {
+final class MockApi: NetworkApi, @unchecked Sendable {
     typealias T = [LikeItem]?
     
-    var mockFetchDataClosure: ((Int, Int, @escaping (Result<[LikeItem]?, Error>) -> Void) -> Void)?
+    var mockFetchDataClosure: ((Int, Int, @Sendable @escaping (Result<[LikeItem]?, Error>) -> Void) -> Void)?
     
-    func fetchData(page: Int, batchSize: Int, completion: @escaping (Result<[LikeItem]?, Error>) -> Void) {
+    func fetchData(page: Int, batchSize: Int, completion: @Sendable @escaping (Result<[LikeItem]?, Error>) -> Void) async {
         mockFetchDataClosure?(page, batchSize, completion)
     }
 }
 
-class MockStore: LocalApi {
+final class MockStore: LocalApi, @unchecked Sendable {
     typealias T = [LikeItem]?
     
     var storedData: [LikeItem]?

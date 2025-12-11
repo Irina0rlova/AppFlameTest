@@ -3,7 +3,7 @@ import Foundation
 public class LikeYouNetworkApi: NetworkApi {
     public typealias T = [LikeItem]?
     
-    public func fetchData(page: Int, batchSize: Int, completion: @escaping (Result<[LikeItem]?, any Error>) -> Void) async {
+    public func fetchData(page: Int, batchSize: Int, completion: @Sendable @escaping (Result<[LikeItem]?, any Error>) -> Void) async {
         do {
             let res = try await generateLikeItems(page: page, batchSize: batchSize)
             completion(.success(res))
@@ -30,3 +30,7 @@ public class LikeYouNetworkApi: NetworkApi {
         return likeItems
     }
 }
+
+// LikeYouNetworkApi has no shared mutable state; mark as @unchecked Sendable
+// to satisfy the repository's generic Sendable constraints.
+extension LikeYouNetworkApi: @unchecked Sendable {}
