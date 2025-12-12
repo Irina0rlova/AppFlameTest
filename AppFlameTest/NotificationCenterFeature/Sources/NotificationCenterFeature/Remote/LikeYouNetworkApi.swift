@@ -3,12 +3,12 @@ import Foundation
 public class LikeYouNetworkApi: NetworkApi {
     public typealias T = [LikeItem]?
     
-    public func fetchData(page: Int, batchSize: Int, completion: @Sendable @escaping (Result<[LikeItem]?, any Error>) -> Void) async {
+    public func fetchData(page: Int, batchSize: Int) async throws -> [LikeItem]? {
         do {
             let res = try await generateLikeItems(page: page, batchSize: batchSize)
-            completion(.success(res))
+            return res
         } catch {
-            completion(.failure(error))
+            throw error
         }
     }
     
@@ -20,7 +20,7 @@ public class LikeYouNetworkApi: NetworkApi {
                 id: UUID(),
                 userName: "User \(i)",
                 avatarURL: URL(string: "https://randomuser.me/api/portraits/men/\(i+1).jpg"),
-                isBlurred: true
+                isBlurred: false
             )
             likeItems.append(likeItem)
         }

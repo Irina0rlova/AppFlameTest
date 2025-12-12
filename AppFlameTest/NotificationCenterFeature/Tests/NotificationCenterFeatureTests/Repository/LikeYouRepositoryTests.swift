@@ -28,17 +28,19 @@ final class LikeYouRepositoryTests: XCTestCase {
             LikeItem(id: UUID(), userName: "User 2", avatarURL: URL(string: "https://example.com/avatar2.jpg"), isBlurred: false)
         ]
         
-        mockApi.mockFetchDataClosure = { _, _, completion in
-            completion(.success(likeItems))
+        mockApi.mockFetchDataClosure = { _, _ in
+            likeItems
         }
         mockStore.storedData = nil
         
         let expectation = self.expectation(description: "Completion called")
         let store = mockStore // avoid capturing self in @Sendable closure
-        await repository.load(page: 1, batchSize: 10) { error in
-            XCTAssertNil(error)
+        do {
+            _ = try await repository.load(page: 1, batchSize: 10)
             XCTAssertEqual(store?.storedData, likeItems)
             expectation.fulfill()
+        } catch {
+            XCTFail("Expected to load data successfully but got error: \(error)")
         }
         
         await fulfillment(of: [expectation], timeout: 5)
@@ -47,14 +49,16 @@ final class LikeYouRepositoryTests: XCTestCase {
     func testLoadFailsWhenApiFails() async {
         let mockError = NSError(domain: "NetworkError", code: 500, userInfo: nil)
         
-        mockApi.mockFetchDataClosure = { _, _, completion in
-            completion(.failure(mockError))
+        mockApi.mockFetchDataClosure = { _, _ in
+            throw mockError
         }
         
         let expectation = self.expectation(description: "Completion called")
         let store = mockStore
-        await repository.load(page: 1, batchSize: 10) { error in
-            XCTAssertEqual(error as? NSError, mockError)
+        do {
+            try await repository.load(page: 1, batchSize: 10)
+        } catch let error as NSError {
+            XCTAssertEqual(error, mockError)
             XCTAssertNil(store?.storedData) // Data should not be stored
             expectation.fulfill()
         }
@@ -80,10 +84,10 @@ final class LikeYouRepositoryTests: XCTestCase {
 final class MockApi: NetworkApi, @unchecked Sendable {
     typealias T = [LikeItem]?
     
-    var mockFetchDataClosure: ((Int, Int, @Sendable @escaping (Result<[LikeItem]?, Error>) -> Void) -> Void)?
+    var mockFetchDataClosure: ((Int, Int) throws -> [LikeItem]?)?
     
-    func fetchData(page: Int, batchSize: Int, completion: @Sendable @escaping (Result<[LikeItem]?, Error>) -> Void) async {
-        mockFetchDataClosure?(page, batchSize, completion)
+    func fetchData(page: Int, batchSize: Int) async throws -> [LikeItem]? {
+        try mockFetchDataClosure?(page, batchSize)
     }
 }
 
