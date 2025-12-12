@@ -4,7 +4,7 @@ protocol Repository {
     func getData() async -> T
 }
 
-public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: Repository where Api.T == [LikeItem]?, Store.T == [LikeItem]? {
+public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
     typealias T = [LikeItem]?
     
     private let api: Api
@@ -22,8 +22,12 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
         let api = self.api
         let localApi = self.localApi
 
+        if page == 0 {
+            localApi.clear()
+        }
+        
         let likeItems = try await api.fetchData(page: page, batchSize: batchSize)
-        localApi.createOrUpdate(data: (likeItems!))
+        localApi.createOrUpdate(data: (likeItems.items))
     }
     
     public func getData() -> [LikeItem]? {

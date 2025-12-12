@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import NotificationCenterFeature
 
 final class LikeYouRepositoryTests: XCTestCase {
@@ -29,7 +30,7 @@ final class LikeYouRepositoryTests: XCTestCase {
         ]
         
         mockApi.mockFetchDataClosure = { _, _ in
-            likeItems
+            Page(items: likeItems, nextCursor: "3")
         }
         mockStore.storedData = nil
         
@@ -82,12 +83,12 @@ final class LikeYouRepositoryTests: XCTestCase {
 }
 
 final class MockApi: NetworkApi, @unchecked Sendable {
-    typealias T = [LikeItem]?
+    typealias T = LikeItem
     
-    var mockFetchDataClosure: ((Int, Int) throws -> [LikeItem]?)?
+    var mockFetchDataClosure: ((Int, Int) throws -> Page<LikeItem>)?
     
-    func fetchData(page: Int, batchSize: Int) async throws -> [LikeItem]? {
-        try mockFetchDataClosure?(page, batchSize)
+    func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
+        try mockFetchDataClosure!(page, batchSize)
     }
 }
 

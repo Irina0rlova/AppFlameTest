@@ -1,12 +1,13 @@
 import Foundation
 
 public class LikeYouNetworkApi: NetworkApi {
-    public typealias T = [LikeItem]?
+    public typealias T = LikeItem
     
-    public func fetchData(page: Int, batchSize: Int) async throws -> [LikeItem]? {
+    public func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
         do {
             let res = try await generateLikeItems(page: page, batchSize: batchSize)
-            return res
+            let nextCursor = page < 5 ? "\(page + 1)" : nil
+            return Page(items: res, nextCursor: nextCursor)
         } catch {
             throw error
         }

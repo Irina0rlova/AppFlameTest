@@ -1,4 +1,4 @@
 public protocol NetworkApi {
-    associatedtype T
-    func fetchData(page: Int, batchSize: Int) async throws -> T
+    associatedtype T: Equatable
+    func fetchData(page: Int, batchSize: Int) async throws -> Page<T>
 }

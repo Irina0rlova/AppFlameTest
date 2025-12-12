@@ -20,7 +20,7 @@ final class LikeYouNetworkApiTests: XCTestCase {
         do {
             let likeItems = try await networkApi.fetchData(page: 1, batchSize: 10)
             XCTAssertNotNil(likeItems)
-            XCTAssertEqual(likeItems?.count, 10)
+            XCTAssertEqual(likeItems.items.count, 10)
             expectation.fulfill()
         } catch let error {
             XCTFail("Expected success, but got failure with error: \(error)")
@@ -35,7 +35,7 @@ final class LikeYouNetworkApiTests: XCTestCase {
         do {
             let likeItems = try await networkApi.fetchData(page: 3, batchSize: 10)
             XCTAssertNotNil(likeItems)
-            XCTAssertEqual(likeItems?.count, 10)
+            XCTAssertEqual(likeItems.items.count, 10)
             expectation.fulfill()
         } catch let error {
             XCTFail("Expected success, but got failure with error: \(error)")
@@ -65,7 +65,7 @@ final class LikeYouNetworkApiTests: XCTestCase {
         do {
             let likeItems = try await networkApi.fetchData(page: 1, batchSize: 10)
             XCTAssertNotNil(likeItems)
-            XCTAssertEqual(likeItems?.count, 10)
+            XCTAssertEqual(likeItems.items.count, 10)
             expectation.fulfill()
         } catch let error {
             XCTFail("Expected success, but got failure with error: \(error)")
@@ -76,7 +76,7 @@ final class LikeYouNetworkApiTests: XCTestCase {
 }
 
 class MockLikeYouNetworkApi: LikeYouNetworkApi, @unchecked Sendable {
-    override func fetchData(page: Int, batchSize: Int) async throws -> [LikeItem]? {
+    override func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
         throw NSError(domain: "MockError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Mock failure"])
     }
 }
