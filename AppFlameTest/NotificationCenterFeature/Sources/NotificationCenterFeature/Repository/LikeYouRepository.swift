@@ -2,6 +2,7 @@ protocol Repository {
     associatedtype T
     func load(page: Int, batchSize: Int) async throws
     func getData() async -> T
+    func getCursor() -> Int?
 }
 
 public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
@@ -9,6 +10,8 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
     
     private let api: Api
     private let localApi: Store
+    
+    private var cursor: Int? = nil
     
     public init(
         api: Api,
@@ -22,16 +25,21 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
         let api = self.api
         let localApi = self.localApi
 
-        if page == 0 {
+        if page == 1 {
             localApi.clear()
         }
         
         let likeItems = try await api.fetchData(page: page, batchSize: batchSize)
         localApi.createOrUpdate(data: (likeItems.items))
+        self.cursor = likeItems.nextCursor
     }
     
     public func getData() -> [LikeItem]? {
         localApi.get()
+    }
+    
+    public func getCursor() -> Int? {
+        cursor
     }
 }
 

@@ -21,6 +21,7 @@ final class LikeYouNetworkApiTests: XCTestCase {
             let likeItems = try await networkApi.fetchData(page: 1, batchSize: 10)
             XCTAssertNotNil(likeItems)
             XCTAssertEqual(likeItems.items.count, 10)
+            XCTAssertEqual(likeItems.nextCursor, 2)
             expectation.fulfill()
         } catch let error {
             XCTFail("Expected success, but got failure with error: \(error)")
@@ -36,6 +37,23 @@ final class LikeYouNetworkApiTests: XCTestCase {
             let likeItems = try await networkApi.fetchData(page: 3, batchSize: 10)
             XCTAssertNotNil(likeItems)
             XCTAssertEqual(likeItems.items.count, 10)
+            XCTAssertEqual(likeItems.nextCursor, 4)
+            expectation.fulfill()
+        } catch let error {
+            XCTFail("Expected success, but got failure with error: \(error)")
+        }
+        
+        await fulfillment(of: [expectation], timeout: 6)
+    }
+    
+    func testFetchData_LastPage() async throws {
+        let expectation = XCTestExpectation(description: "Successfully fetched data")
+        
+        do {
+            let likeItems = try await networkApi.fetchData(page: 5, batchSize: 10)
+            XCTAssertNotNil(likeItems)
+            XCTAssertEqual(likeItems.items.count, 10)
+            XCTAssertEqual(likeItems.nextCursor, nil)
             expectation.fulfill()
         } catch let error {
             XCTFail("Expected success, but got failure with error: \(error)")

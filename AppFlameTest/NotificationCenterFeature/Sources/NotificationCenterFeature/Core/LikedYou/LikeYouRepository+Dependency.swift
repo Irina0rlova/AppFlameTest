@@ -3,6 +3,7 @@ import ComposableArchitecture
 struct LikeYouRepositoryDependency {
     var load: @Sendable (Int, Int) async throws -> Void
     var getData: @Sendable () -> [LikeItem]?
+    var getCursor: @Sendable () -> Int?
 }
 
 private enum LikeYouRepositoryKey: DependencyKey {
@@ -14,12 +15,16 @@ private enum LikeYouRepositoryKey: DependencyKey {
         },
         getData: {
             repository.getData()
+        },
+        getCursor: {
+            repository.getCursor()
         }
     )
     
     static let testValue: LikeYouRepositoryDependency = .init(
         load: { _, _ in },
-        getData: { [] }
+        getData: { [] },
+        getCursor:  { nil }
     )
 }
 
@@ -29,3 +34,4 @@ extension DependencyValues {
         set { self[LikeYouRepositoryKey.self] = newValue }
     }
 }
+

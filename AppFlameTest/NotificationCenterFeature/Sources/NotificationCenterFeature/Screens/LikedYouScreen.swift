@@ -1,21 +1,40 @@
 import SwiftUI
+import ComposableArchitecture
 
 public struct LikedYouScreen: View {
-    @StateObject private var viewModel: LikedYouViewModel
+    let store: StoreOf<LikedYouReducer>
     
-    public init(repository: LikeYouRepository<LikeYouNetworkApi, LikeLocalApi>) {
-        _viewModel = StateObject(wrappedValue: LikedYouViewModel(repository: repository))
+    public init(store: StoreOf<LikedYouReducer>) {
+        self.store = store
     }
     
     public var body: some View {
-        GridView(items: viewModel.items)
+        WithViewStore(store, observe: { $0 }) { viewStore in
+            GridView(
+                items: viewStore.items,
+                onLoadMore: {
+                    viewStore.send(.loadNextPage)
+                }
+            )
             .task {
-                await viewModel.fetchData()
+                viewStore.send(.onAppear)
             }
+            .overlay {
+                if viewStore.isLoading {
+                    ProgressView()
+                }
+            }
+        }
     }
 }
 
 
 #Preview {
-    LikedYouScreen(repository: LikeYouRepository<LikeYouNetworkApi, LikeLocalApi>(api: LikeYouNetworkApi(), localApi: LikeLocalApi()))
+    LikedYouScreen(
+        store: Store(
+            initialState: LikedYouReducer.State()
+        ) {
+            LikedYouReducer()
+        }
+    )
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct GridView: View {
     let items: [LikeItem]
+    let onLoadMore: () -> Void
     
     private var columns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
@@ -22,16 +23,17 @@ public struct GridView: View {
     private let horizontalPadding: CGFloat = 5
     private let verticalPadding: CGFloat = 8
     
-    public init(items: [LikeItem]) {
-        self.items = items
-    }
-    
     public var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: gridSpacing) {
                 ForEach(items) { item in
                     CardView(item: item)
                         .frame(maxWidth: .infinity)
+                        .onAppear {
+                            if item == items.last {
+                                onLoadMore()
+                            }
+                        }
                 }
             }
             .padding(.horizontal, horizontalPadding)
