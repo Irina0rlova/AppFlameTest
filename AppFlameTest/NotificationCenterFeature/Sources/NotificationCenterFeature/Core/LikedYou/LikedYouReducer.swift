@@ -3,7 +3,8 @@ import Foundation
 
 public struct LikedYouReducer: Reducer, Sendable {
     @Dependency(\.likeYouRepository) var repository
-    
+    @Dependency(\.mainQueue) var mainQueue
+
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
             
@@ -26,6 +27,8 @@ public struct LikedYouReducer: Reducer, Sendable {
                 
                 await send(.initialLoadCompleted(Page(items: items, nextCursor: cursor)))
             }
+            .debounce(id: CancelID.loadInitial, for: .seconds(0.3), scheduler: mainQueue)
+            .cancellable(id: CancelID.loadInitial, cancelInFlight: true)
             
         case .loadNextPage:
             guard !state.isLoading
@@ -39,7 +42,7 @@ public struct LikedYouReducer: Reducer, Sendable {
             return .run { send in
                 do {
                     try await repository.load(cursor, 10)
-                } catch _ {
+                } catch {
                     await send(.nextPageFailed)
                     return
                 }
@@ -49,6 +52,8 @@ public struct LikedYouReducer: Reducer, Sendable {
                 
                 await send(.nextPageCompleted(Page(items: items, nextCursor: nextCursor)))
             }
+            .debounce(id: CancelID.loadNextPage(state.cursor! - 1), for: .seconds(0.3), scheduler: mainQueue)
+            .cancellable(id: CancelID.loadNextPage(state.cursor! - 1))
             
         case .likeTapped:
             return .none
@@ -102,5 +107,10 @@ public struct LikedYouReducer: Reducer, Sendable {
         case likeTapped(id: UUID)
         case discardTapped(id: UUID)
     }
+}
+
+private enum CancelID: Hashable {
+    case loadInitial
+    case loadNextPage(Int)
 }
 
