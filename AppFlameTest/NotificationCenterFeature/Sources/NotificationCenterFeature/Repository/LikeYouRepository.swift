@@ -1,7 +1,7 @@
 protocol Repository {
     associatedtype T
     func load(page: Int, batchSize: Int) async throws
-    func getData() async -> T
+    func getData() -> T
     func getCursor() -> Int?
 }
 

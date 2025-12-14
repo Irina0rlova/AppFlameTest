@@ -12,7 +12,7 @@ public struct CardView: View {
             AsyncImage(url: item.avatarURL) { phase in
                 switch phase {
                 case .empty:
-                    Color.gray.opacity(0.2)
+                    Color.gray.opacity(0.8)
                 case .success(let image):
                     image
                         .resizable()
@@ -50,6 +50,9 @@ public struct CardView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
+                    .disabled(item.isReadOnly)
+                    .opacity(item.isReadOnly ? 0.5 : 1.0)
+                    .grayscale(item.isReadOnly ? 1.0 : 0.0)
                     
                     Button(action: {  }) {
                         Image(systemName: "xmark")
@@ -59,6 +62,9 @@ public struct CardView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
+                    .disabled(item.isReadOnly)
+                    .opacity(item.isReadOnly ? 0.5 : 1.0)
+                    .grayscale(item.isReadOnly ? 1.0 : 0.0)
                 }
                 .padding([.trailing, .bottom], 12)
                 .frame(maxWidth: .infinity, alignment: .bottomTrailing)
@@ -74,6 +80,7 @@ public struct CardView: View {
         id: UUID(),
         userName: "User 1",
         avatarURL: URL(string: "https://randomuser.me/api/portraits/men/1.jpg"),
-        isBlurred: false
+        isBlurred: false,
+        isReadOnly: true
     ))
 }
