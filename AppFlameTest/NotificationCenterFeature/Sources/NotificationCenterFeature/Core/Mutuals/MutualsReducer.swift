@@ -19,9 +19,9 @@ public struct MutualsReducer: Reducer, Sendable {
             return .none
             
         case let .addMutual(item):
+            state.items.insert(item, at: 0)
             return .run { send in
                 await repository.addMutual(item)
-                await send(.mutualsLoaded(await repository.getData()))
             }
         }
     }

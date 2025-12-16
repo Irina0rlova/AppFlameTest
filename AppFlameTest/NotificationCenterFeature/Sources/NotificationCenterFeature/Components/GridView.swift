@@ -3,6 +3,7 @@ import SwiftUI
 public struct GridView: View {
     let items: [LikeItem]
     let onLoadMore: () -> Void
+    let onSkip: (_ id: UUID) -> Void
     
     private var columns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
@@ -27,7 +28,10 @@ public struct GridView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: gridSpacing) {
                 ForEach(items) { item in
-                    CardView(item: item)
+                    CardView(
+                        item: item,
+                        onSkip: onSkip
+                    )
                         .frame(maxWidth: .infinity)
                         .onAppear {
                             if item == items.last {

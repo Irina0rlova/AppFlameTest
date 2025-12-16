@@ -14,6 +14,9 @@ public struct LikedYouScreen: View {
                 items: viewStore.items,
                 onLoadMore: {
                     viewStore.send(.loadNextPage)
+                },
+                onSkip: { id in
+                    viewStore.send(.skipTapped(id: id))
                 }
             )
             .task {

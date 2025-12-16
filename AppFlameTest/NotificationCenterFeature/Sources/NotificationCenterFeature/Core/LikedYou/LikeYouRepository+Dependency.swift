@@ -1,9 +1,11 @@
 import ComposableArchitecture
+import Foundation
 
 struct LikeYouRepositoryDependency {
     var load: @Sendable (Int, Int) async throws -> Void
     var getData: @Sendable () -> [LikeItem]?
     var getCursor: @Sendable () -> Int?
+    var removeItem: @Sendable (UUID) async -> Void
 }
 
 private enum LikeYouRepositoryKey: DependencyKey {
@@ -18,13 +20,17 @@ private enum LikeYouRepositoryKey: DependencyKey {
         },
         getCursor: {
             repository.getCursor()
+        },
+        removeItem: { id in
+            await repository.removeItem(id: id)
         }
     )
     
     static let testValue: LikeYouRepositoryDependency = .init(
         load: { _, _ in },
         getData: { [] },
-        getCursor:  { nil }
+        getCursor:  { nil },
+        removeItem: { _ in }
     )
 }
 

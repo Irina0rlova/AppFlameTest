@@ -23,7 +23,8 @@ struct ContentView: View {
                 }
                 .tag(2)
             NavigationStack {
-                NotificationCenterFeature().makeModuleView()
+                //NotificationCenterFeature().makeModuleView()
+                LikesView()
                     .navigationTitle("Likes")
                     .navigationBarTitleDisplayMode(.large)
             }

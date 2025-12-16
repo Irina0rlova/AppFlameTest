@@ -36,8 +36,10 @@ public struct LikedYouReducer: Reducer, Sendable {
                 return .none
             }
             
+            guard let cursor = state.cursor else {
+                return .none
+            }
             state.isLoading = true
-            let cursor = state.cursor ?? 1
             
             return .run { send in
                 do {
@@ -58,8 +60,14 @@ public struct LikedYouReducer: Reducer, Sendable {
         case .likeTapped:
             return .none
             
-        case .discardTapped:
-            return .none
+        case .skipTapped(let id):
+            return .run { send in
+                await repository.removeItem(id)
+                let items = repository.getData() ?? []
+                let nextCursor = repository.getCursor()
+                
+                await send(.initialLoadCompleted(Page(items: items, nextCursor: nextCursor)))
+            }
             
         case .initialLoadCompleted(let page):
             state.items = page.items
@@ -105,7 +113,7 @@ public struct LikedYouReducer: Reducer, Sendable {
         case nextPageFailed
         
         case likeTapped(id: UUID)
-        case discardTapped(id: UUID)
+        case skipTapped(id: UUID)
     }
 }
 

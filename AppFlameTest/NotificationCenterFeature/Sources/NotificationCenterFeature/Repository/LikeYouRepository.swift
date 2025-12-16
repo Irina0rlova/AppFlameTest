@@ -1,8 +1,10 @@
+import Foundation
 protocol Repository {
     associatedtype T
     func load(page: Int, batchSize: Int) async throws
     func getData() -> T
     func getCursor() -> Int?
+    func removeItem(id: UUID) async
 }
 
 public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
@@ -11,7 +13,7 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
     private let api: Api
     private let localApi: Store
     
-    private var cursor: Int? = nil
+    private var cursor: Int? = 1
     
     public init(
         api: Api,
@@ -24,6 +26,10 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
     public func load(page: Int, batchSize: Int) async throws {
         let api = self.api
         let localApi = self.localApi
+        
+        guard cursor != nil else {
+            return
+        }
 
         if page == 1 {
             localApi.clear()
@@ -40,6 +46,16 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
     
     public func getCursor() -> Int? {
         cursor
+    }
+    
+    public func removeItem(id: UUID) async {
+        var items = localApi.get()
+        items?.removeAll(where: { $0.id == id })
+        
+        await api.removeItem(id: id)
+        
+        localApi.clear()
+        localApi.createOrUpdate(data: (items))
     }
 }
 

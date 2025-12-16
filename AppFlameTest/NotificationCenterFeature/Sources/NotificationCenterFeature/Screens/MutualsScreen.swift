@@ -12,7 +12,8 @@ public struct MutualsScreen: View {
         WithViewStore(store, observe: { $0 }) { viewStore in
             GridView(
                 items: viewStore.items,
-                onLoadMore: {}
+                onLoadMore: {},
+                onSkip: { id in }
             )
             .onAppear {
                 viewStore.send(.onAppear)

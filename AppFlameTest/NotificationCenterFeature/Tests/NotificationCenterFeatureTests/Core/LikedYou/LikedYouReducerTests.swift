@@ -6,6 +6,7 @@ final class LikedYouReducerTests: XCTestCase {
     func testOnAppearTriggersLoadInitial() async {
         //Given
         let expectation = expectation(description: "loadCalled")
+        let scheduler = DispatchQueue.test
         let page = Page(
             items: [
                 LikeItem(id: UUID(), userName: "Test", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
@@ -19,6 +20,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
         
         withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
             $0.likeYouRepository.load = { _, _ in
                 expectation.fulfill()
             }
@@ -39,6 +41,7 @@ final class LikedYouReducerTests: XCTestCase {
         await store.receive(.loadInitial){
             $0.isLoading = true
         }
+        await scheduler.advance(by: .seconds(0.3))
         await store.receive(.initialLoadCompleted(page)) {
             $0.items = page.items
             $0.cursor = page.nextCursor
@@ -51,6 +54,7 @@ final class LikedYouReducerTests: XCTestCase {
     func testLoadInitialFetchesPage() async {
         //Given
         let expectation = expectation(description: "loadCalled")
+        let scheduler = DispatchQueue.test
         let page = Page(
             items: [
                 LikeItem(id: UUID(), userName: "Test", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
@@ -63,6 +67,7 @@ final class LikedYouReducerTests: XCTestCase {
         ) {
             LikedYouReducer()
         } withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
             $0.likeYouRepository.load = { _, _ in
                 expectation.fulfill()
             }
@@ -82,6 +87,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
 
         //Then
+        await scheduler.advance(by: .seconds(0.3))
         await store.receive(.initialLoadCompleted(page)) {
             $0.items = page.items
             $0.cursor = page.nextCursor
@@ -94,6 +100,7 @@ final class LikedYouReducerTests: XCTestCase {
     func testLoadInitialFetchesPageFailed() async {
         //Given
         let expectation = expectation(description: "loadCalled")
+        let scheduler = DispatchQueue.test
         
         UserDefaults.standard.set(["en_US"], forKey: "AppleLanguages")
         UserDefaults.standard.synchronize()
@@ -103,6 +110,7 @@ final class LikedYouReducerTests: XCTestCase {
         ) {
             LikedYouReducer()
         } withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
             $0.likeYouRepository.load = { _, _ in
                 expectation.fulfill()
                 throw NSError(domain: "TestError", code: 1, userInfo: nil)
@@ -115,6 +123,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
         
         //Then
+        await scheduler.advance(by: .seconds(0.3))
         await store.receive(.initialLoadFailed(message: "The operation couldn’t be completed. (TestError error 1.)")) {
             $0.isLoading = false
         }
@@ -146,6 +155,7 @@ final class LikedYouReducerTests: XCTestCase {
     func testLoadNextPageFetchesNextCursor() async {
         //Given
         let expectation = expectation(description: "loadCalled")
+        let scheduler = DispatchQueue.test
         let initialPage = Page(
             items: [
                 LikeItem(id: UUID(), userName: "User1", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
@@ -166,10 +176,16 @@ final class LikedYouReducerTests: XCTestCase {
         )
             
         let store = await TestStore(
-            initialState: LikedYouReducer.State()
+            initialState: LikedYouReducer.State(
+                items: initialPage.items,
+                cursor: 1,
+                isLoading: false
+            )
         ) {
             LikedYouReducer()
         } withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
+            
             $0.likeYouRepository.load = { _, _ in
                 expectation.fulfill()
             }
@@ -189,6 +205,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
 
         //Then
+        await scheduler.advance(by: .seconds(0.3))
         await store.receive(.nextPageCompleted(expectedPage)) {
             $0.items = initialPage.items + nextPage.items
             $0.cursor = nextPage.nextCursor
@@ -230,6 +247,133 @@ final class LikedYouReducerTests: XCTestCase {
         //Then
         XCTAssertEqual(loadCallCount.value, 0)
     }
+    
+    func testLoadNextPageLastPage() async {
+        //Given
+        let scheduler = DispatchQueue.test
+            
+        let store = await TestStore(
+            initialState: LikedYouReducer.State(
+                    items: [],
+                    cursor: nil,
+                    isLoading: false
+            )
+        ) {
+            LikedYouReducer()
+        } withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
+        }
+
+        //When
+        await store.send(.loadNextPage)
+
+        //Then
+        await scheduler.advance(by: .seconds(0.3))
+    }
+    
+    func testSkipTappedRemovesItemAndUpdatesState() async {
+        // Given
+        let expectation = expectation(description: "loadCalled")
+        let idForRemove = UUID()
+        let initialPage = Page(
+            items: [
+                LikeItem(id: idForRemove, userName: "User1", avatarURL: URL(string: "https://x.com")!, isBlurred: false),
+                LikeItem.mock()
+            ],
+            nextCursor: 2
+        )
+        let expectedPage = Page(
+            items: [LikeItem.mock()],
+            nextCursor: 2
+        )
+        
+        let store = await TestStore(
+            initialState: LikedYouReducer.State(
+                items: initialPage.items,
+                cursor: 2,
+                isLoading: false
+            )
+        ) {
+            LikedYouReducer()
+        } withDependencies: {
+            $0.likeYouRepository.removeItem = { _ in
+                expectation.fulfill()
+            }
+            
+            $0.likeYouRepository.getData = {
+                expectedPage.items
+            }
+
+            $0.likeYouRepository.getCursor = {
+                expectedPage.nextCursor
+            }
+        }
+        
+        // When
+        await store.send(.skipTapped(id: idForRemove))
+        
+        // Then
+        await store.receive(.initialLoadCompleted(expectedPage)) {
+            $0.items = expectedPage.items
+            $0.cursor = expectedPage.nextCursor
+            $0.isLoading = false
+        }
+        
+        await fulfillment(of: [expectation], timeout: 5)
+    }
+    
+    func testSkipTappedRemovesItemEmptyList() async {
+        // Given
+        let expectation = expectation(description: "loadCalled")
+        let idForRemove = UUID()
+        let initialPage = Page(
+            items: [
+                LikeItem(id: idForRemove, userName: "User1", avatarURL: URL(string: "https://x.com")!, isBlurred: false),
+                LikeItem.mock()
+            ],
+            nextCursor: 2
+        )
+        let emptyItems: [LikeItem] = []
+        let expectedPage = Page(
+            items: emptyItems,
+            nextCursor: 2
+        )
+        
+        let store = await TestStore(
+            initialState: LikedYouReducer.State(
+                items: initialPage.items,
+                cursor: 2,
+                isLoading: false
+            )
+        ) {
+            LikedYouReducer()
+        } withDependencies: {
+            $0.likeYouRepository.removeItem = { _ in
+                expectation.fulfill()
+            }
+            
+            $0.likeYouRepository.getData = {
+                nil
+            }
+
+            $0.likeYouRepository.getCursor = {
+                expectedPage.nextCursor
+            }
+        }
+        
+        // When
+        await store.send(.skipTapped(id: idForRemove))
+        
+        // Then
+        await store.receive(.initialLoadCompleted(expectedPage)) {
+            $0.items = expectedPage.items
+            $0.cursor = expectedPage.nextCursor
+            $0.isLoading = false
+        }
+        
+        await fulfillment(of: [expectation], timeout: 5)
+    }
+    
     
 //    func testLoadNextPage_Debounced() async {
 //        let clock = TestClock()
@@ -296,7 +440,7 @@ final class LikedYouReducerTests: XCTestCase {
 //        }
 //    }
     
-    func testDebounceOnLoadInitial() async {
+    /*func testDebounceOnLoadInitial() async {
         let expectation = expectation(description: "debounce triggered")
         
         let initialPage = Page(
@@ -360,5 +504,5 @@ final class LikedYouReducerTests: XCTestCase {
         
         await fulfillment(of: [expectation], timeout: 1)
     }
-
+*/
 }

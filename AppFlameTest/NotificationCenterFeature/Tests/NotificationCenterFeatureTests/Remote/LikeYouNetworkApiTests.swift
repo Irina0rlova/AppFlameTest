@@ -91,6 +91,8 @@ final class LikeYouNetworkApiTests: XCTestCase {
         
         await fulfillment(of: [expectation], timeout: 6)
     }
+    
+    
 }
 
 class MockLikeYouNetworkApi: LikeYouNetworkApi, @unchecked Sendable {

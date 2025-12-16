@@ -2,9 +2,14 @@ import SwiftUI
 
 public struct CardView: View {
     let item: LikeItem
+    let onSkip: (_ id: UUID) -> Void
     
-    public init(item: LikeItem) {
+    public init(
+        item: LikeItem,
+        onSkip: @escaping (_ id: UUID) -> Void
+    ) {
         self.item = item
+        self.onSkip = onSkip
     }
     
     public var body: some View {
@@ -54,7 +59,7 @@ public struct CardView: View {
                     .opacity(item.isReadOnly ? 0.5 : 1.0)
                     .grayscale(item.isReadOnly ? 1.0 : 0.0)
                     
-                    Button(action: {  }) {
+                    Button(action: { onSkip(item.id) }) {
                         Image(systemName: "xmark")
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -82,5 +87,5 @@ public struct CardView: View {
         avatarURL: URL(string: "https://randomuser.me/api/portraits/men/1.jpg"),
         isBlurred: false,
         isReadOnly: true
-    ))
+    ), onSkip: { id in } )
 }
