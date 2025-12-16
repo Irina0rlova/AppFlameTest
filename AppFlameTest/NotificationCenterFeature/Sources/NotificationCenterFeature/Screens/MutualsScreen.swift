@@ -13,7 +13,8 @@ public struct MutualsScreen: View {
             GridView(
                 items: viewStore.items,
                 onLoadMore: {},
-                onSkip: { id in }
+                onSkip: { id in },
+                onLike: { id in }
             )
             .onAppear {
                 viewStore.send(.onAppear)

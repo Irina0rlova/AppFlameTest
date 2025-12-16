@@ -310,7 +310,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
         
         // When
-        await store.send(.skipTapped(id: idForRemove))
+        await store.send(.skip(id: idForRemove))
         
         // Then
         await store.receive(.initialLoadCompleted(expectedPage)) {
@@ -362,7 +362,7 @@ final class LikedYouReducerTests: XCTestCase {
         }
         
         // When
-        await store.send(.skipTapped(id: idForRemove))
+        await store.send(.skip(id: idForRemove))
         
         // Then
         await store.receive(.initialLoadCompleted(expectedPage)) {

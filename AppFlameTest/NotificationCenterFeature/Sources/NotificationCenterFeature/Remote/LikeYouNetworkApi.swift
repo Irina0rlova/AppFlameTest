@@ -15,7 +15,7 @@ public class LikeYouNetworkApi: NetworkApi {
     
     public func removeItem(id: UUID) async {
         do {
-            try await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+            try await Task.sleep(nanoseconds: 1_000_000_000)
         } catch {
             // handle error if needed
         }
@@ -34,7 +34,7 @@ public class LikeYouNetworkApi: NetworkApi {
             likeItems.append(likeItem)
         }
         
-        try await Task.sleep(nanoseconds: 5 * 1_000_000_000)
+        try await Task.sleep(nanoseconds: 3 * 1_000_000_000)
         print("generateLikeItems was called")
         return likeItems
     }

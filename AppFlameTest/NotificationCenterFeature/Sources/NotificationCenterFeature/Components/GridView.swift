@@ -4,6 +4,7 @@ public struct GridView: View {
     let items: [LikeItem]
     let onLoadMore: () -> Void
     let onSkip: (_ id: UUID) -> Void
+    let onLike: (_ id: UUID) -> Void
     
     private var columns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
@@ -30,7 +31,8 @@ public struct GridView: View {
                 ForEach(items) { item in
                     CardView(
                         item: item,
-                        onSkip: onSkip
+                        onSkip: onSkip,
+                        onLike: onLike
                     )
                         .frame(maxWidth: .infinity)
                         .onAppear {

@@ -62,13 +62,11 @@ final class MutualsReducerTests: XCTestCase {
         }
 
         //When
-        await store.send(.addMutual(item))
-
-        //Then
-        await store.receive(.mutualsLoaded([item])) {
+        await store.send(.addMutual(item)) {
             $0.items = [item]
         }
-        
+
+        //Then
         await fulfillment(of: [expectation], timeout: 5)
     }
 }

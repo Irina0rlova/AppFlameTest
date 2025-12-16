@@ -7,9 +7,13 @@ public struct LikedYouReducer: Reducer, Sendable {
 
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
-            
         case .onAppear:
-            return .send(.loadInitial)
+            guard let items = repository.getData() else {
+                return .send(.loadInitial)
+            }
+            
+            let cursor = repository.getCursor()
+            return .send(.initialLoadCompleted(Page(items: items, nextCursor: cursor)))
             
         case .loadInitial:
             state.isLoading = true
@@ -57,17 +61,24 @@ public struct LikedYouReducer: Reducer, Sendable {
             .debounce(id: CancelID.loadNextPage(state.cursor! - 1), for: .seconds(0.3), scheduler: mainQueue)
             .cancellable(id: CancelID.loadNextPage(state.cursor! - 1))
             
-        case .likeTapped:
-            return .none
+        case .likeTapped(let id):
+            guard let item = state.items.first(where: { $0.id == id }) else {
+                return .none
+            }
             
-        case .skipTapped(let id):
+            return .merge(
+                .send(.likeConfirmed(item)),
+                .send(.skip(id: id))
+            )
+            
+        case .skip(let id):
             return .run { send in
                 await repository.removeItem(id)
                 let items = repository.getData() ?? []
                 let nextCursor = repository.getCursor()
                 
                 await send(.initialLoadCompleted(Page(items: items, nextCursor: nextCursor)))
-            }
+            } //можна просто оновити state.items !!!!!!!!!!!
             
         case .initialLoadCompleted(let page):
             state.items = page.items
@@ -87,6 +98,9 @@ public struct LikedYouReducer: Reducer, Sendable {
             
         case .nextPageFailed:
             state.isLoading = false
+            return .none
+            
+        case .likeConfirmed:
             return .none
         }
     }
@@ -113,7 +127,9 @@ public struct LikedYouReducer: Reducer, Sendable {
         case nextPageFailed
         
         case likeTapped(id: UUID)
-        case skipTapped(id: UUID)
+        case skip(id: UUID)
+        
+        case likeConfirmed(LikeItem)
     }
 }
 

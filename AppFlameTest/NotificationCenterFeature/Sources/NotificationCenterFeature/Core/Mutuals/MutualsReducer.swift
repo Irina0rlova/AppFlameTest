@@ -19,9 +19,17 @@ public struct MutualsReducer: Reducer, Sendable {
             return .none
             
         case let .addMutual(item):
-            state.items.insert(item, at: 0)
+            let newItem = LikeItem(
+                id: item.id,
+                userName: item.userName,
+                avatarURL: item.avatarURL,
+                isBlurred: item.isBlurred,
+                isReadOnly: true
+            )
+            
+            state.items.insert(newItem, at: 0)
             return .run { send in
-                await repository.addMutual(item)
+                await repository.addMutual(newItem)
             }
         }
     }

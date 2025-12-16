@@ -2,9 +2,19 @@ import SwiftUI
 import ComposableArchitecture
 
 public struct OutgoingLikesScreen: View {
+    let store: StoreOf<NCReducer>
+    
     @State private var selectedTab = 0
     
-    public init() { }
+    public init() {
+        self.store = Store(
+            initialState: NCReducer.State(
+                likedYou: LikedYouReducer.State(),
+                mutuals: MutualsReducer.State())
+        ) {
+            NCReducer()
+        }
+    }
     
     public var body: some View {
         VStack {
@@ -35,19 +45,17 @@ public struct OutgoingLikesScreen: View {
             
             if selectedTab == 0 {
                 LikedYouScreen(
-                    store: Store(
-                        initialState: LikedYouReducer.State()
-                    ) {
-                        LikedYouReducer()
-                    }
+                    store: store.scope(
+                        state: \.likedYou,
+                        action: \.likedYou
+                    )
                 )
             } else {
                 MutualsScreen(
-                    store: Store(
-                        initialState: MutualsReducer.State()
-                    ) {
-                        MutualsReducer()
-                    }
+                    store: store.scope(
+                        state: \.mutuals,
+                        action: \.mutuals
+                    )
                 )
             }
             

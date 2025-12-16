@@ -3,13 +3,16 @@ import SwiftUI
 public struct CardView: View {
     let item: LikeItem
     let onSkip: (_ id: UUID) -> Void
+    let onLike: (_ id: UUID) -> Void
     
     public init(
         item: LikeItem,
-        onSkip: @escaping (_ id: UUID) -> Void
+        onSkip: @escaping (_ id: UUID) -> Void,
+        onLike: @escaping (_ id: UUID) -> Void
     ) {
         self.item = item
         self.onSkip = onSkip
+        self.onLike = onLike
     }
     
     public var body: some View {
@@ -47,7 +50,7 @@ public struct CardView: View {
                     .shadow(radius: 4)
                 
                 VStack(spacing: 8) {
-                    Button(action: { }) {
+                    Button(action: { onLike(item.id) }) {
                         Image(systemName: "heart.fill")
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -87,5 +90,5 @@ public struct CardView: View {
         avatarURL: URL(string: "https://randomuser.me/api/portraits/men/1.jpg"),
         isBlurred: false,
         isReadOnly: true
-    ), onSkip: { id in } )
+    ), onSkip: { id in }, onLike: { id in } )
 }
