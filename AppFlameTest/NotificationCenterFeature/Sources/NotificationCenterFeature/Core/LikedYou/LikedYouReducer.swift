@@ -35,19 +35,21 @@ public struct LikedYouReducer: Reducer, Sendable {
             .cancellable(id: CancelID.loadInitial, cancelInFlight: true)
             
         case .loadNextPage:
-            guard !state.isLoading
-            else {
+            guard !state.isLoading else {
                 return .none
             }
-            
             guard let cursor = state.cursor else {
                 return .none
             }
             state.isLoading = true
-            
+
+            let isBlured = state.isBlured
+            let cancelID = CancelID.loadNextPage(cursor - 1)
+
             return .run { send in
                 do {
                     try await repository.load(cursor, 10)
+                    repository.updateBluredState(isBlured)
                 } catch {
                     await send(.nextPageFailed)
                     return
@@ -58,8 +60,8 @@ public struct LikedYouReducer: Reducer, Sendable {
                 
                 await send(.nextPageCompleted(Page(items: items, nextCursor: nextCursor)))
             }
-            .debounce(id: CancelID.loadNextPage(state.cursor! - 1), for: .seconds(0.3), scheduler: mainQueue)
-            .cancellable(id: CancelID.loadNextPage(state.cursor! - 1))
+            .debounce(id: cancelID, for: .seconds(0.3), scheduler: mainQueue)
+            .cancellable(id: cancelID)
             
         case .likeTapped(let id):
             guard let item = state.items.first(where: { $0.id == id }) else {
@@ -85,6 +87,9 @@ public struct LikedYouReducer: Reducer, Sendable {
             state.cursor = page.nextCursor
             state.isLoading = false
             return .none
+                .debounce(id: CancelID.initialLoadCompleted, for: .seconds(0.3), scheduler: mainQueue)
+                // !!!!!.throttle(id: CancelID.initialLoadCompleted, for: .seconds(0.3), scheduler: mainQueue, latest: true)
+                .cancellable(id: CancelID.initialLoadCompleted, cancelInFlight: true)
             
         case .nextPageCompleted(let page):
             state.items = page.items
@@ -102,18 +107,21 @@ public struct LikedYouReducer: Reducer, Sendable {
             
         case .likeConfirmed:
             return .none
+            
+        case .blur(let isBlured):
+            repository.updateBluredState(isBlured)
+            state.items = repository.getData() ?? []
+            state.isBlured = isBlured
+            return .none
+            //return .send(.initialLoadCompleted(Page(items: repository.getData() ?? [], nextCursor: state.cursor)))
         }
     }
     
-    public struct State: Equatable {
+    public struct State: Equatable, Sendable {
         public var items: [LikeItem] = []
         public var cursor: Int? = nil
         public var isLoading: Bool = false
-//        public var hasMore: Bool {
-//            cursor != nil
-//        }
-        
-        //public init() {}
+        public var isBlured: Bool = true
     }
     
     public enum Action: Equatable {
@@ -127,14 +135,16 @@ public struct LikedYouReducer: Reducer, Sendable {
         case nextPageFailed
         
         case likeTapped(id: UUID)
-        case skip(id: UUID)
+        case skip(id: UUID)  
         
         case likeConfirmed(LikeItem)
+        
+        case blur(isBlured: Bool)
     }
 }
 
 private enum CancelID: Hashable {
     case loadInitial
     case loadNextPage(Int)
+    case initialLoadCompleted
 }
-

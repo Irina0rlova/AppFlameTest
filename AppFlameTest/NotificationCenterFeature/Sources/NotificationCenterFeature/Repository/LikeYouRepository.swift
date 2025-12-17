@@ -7,7 +7,11 @@ protocol Repository {
     func removeItem(id: UUID) async
 }
 
-public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
+protocol LikeYouRepositoryProtocol {
+    func updateBluredState(isBlured: Bool)
+}
+
+public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: LikeYouRepositoryProtocol, Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
     typealias T = [LikeItem]?
     
     private let api: Api
@@ -57,9 +61,18 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
         localApi.clear()
         localApi.createOrUpdate(data: (items))
     }
+    
+    func updateBluredState(isBlured: Bool) {
+        var items = localApi.get() ?? []
+        items.indices.forEach {
+            items[$0].isBlurred = isBlured
+        }
+        
+        localApi.clear()
+        localApi.createOrUpdate(data: items)
+    }
 }
 
 // LikeYouRepository is Sendable because its generic members are Sendable.
 // Marked as @unchecked because we cannot statically guarantee thread safety.
 extension LikeYouRepository: @unchecked Sendable {}
-

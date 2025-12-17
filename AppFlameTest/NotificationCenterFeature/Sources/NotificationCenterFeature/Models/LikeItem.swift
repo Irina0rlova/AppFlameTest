@@ -2,8 +2,8 @@ import Foundation
 
 public struct LikeItem: Identifiable, Equatable, Hashable, Codable, Sendable {
     public let id: UUID
-    public var userName: String
-    public var avatarURL: URL?
+    public let userName: String
+    public let avatarURL: URL?
     public var isBlurred: Bool
     public var isReadOnly: Bool
 

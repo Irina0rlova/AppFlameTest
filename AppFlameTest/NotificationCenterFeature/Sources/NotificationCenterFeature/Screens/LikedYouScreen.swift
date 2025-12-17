@@ -26,9 +26,9 @@ public struct LikedYouScreen: View {
                 viewStore.send(.onAppear)
             }
             .overlay {
-                if viewStore.isLoading {
-                    ProgressView()
-                }
+//                if viewStore.isLoading {
+//                    ProgressView()
+//                }
             }
         }
     }

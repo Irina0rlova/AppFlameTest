@@ -29,12 +29,12 @@ public class LikeYouNetworkApi: NetworkApi {
                 id: UUID(),
                 userName: "User \(i)",
                 avatarURL: URL(string: "https://randomuser.me/api/portraits/men/\(i+1).jpg"),
-                isBlurred: false
+                isBlurred: true
             )
             likeItems.append(likeItem)
         }
         
-        try await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+        try await Task.sleep(nanoseconds:3 * 1_000_000_000)
         print("generateLikeItems was called")
         return likeItems
     }
