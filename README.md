@@ -14,6 +14,12 @@
    ``` OutgoingLikesScreen() ```  
 7. **Tests** can be added via the NotificationCenterFeatureTests target.
 
+NotificationCenterFeature is implemented as a standalone Swift Package.
+For demonstration purposes, the package is integrated into a sample
+application called AppFlameTestApp.  
+AppFlameTestApp serves only as a demo host and is not required for using
+the package in another application.
+
 ## Architecture Summary
 The project uses **MVVM** with **SwiftUI** and **TCA**
 
