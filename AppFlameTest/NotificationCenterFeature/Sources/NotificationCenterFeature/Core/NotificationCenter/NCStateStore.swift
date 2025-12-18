@@ -1,6 +1,6 @@
 import Foundation
 
-public final class NCStateStore {
+public final class NCStateStore: Sendable {
     private let unblurEndDateKey = "UnblurEndDate"
     
     public func saveUnblurEndDate(endDate: Date?) {

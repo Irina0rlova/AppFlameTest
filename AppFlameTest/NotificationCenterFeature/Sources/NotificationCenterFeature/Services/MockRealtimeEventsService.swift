@@ -34,4 +34,23 @@ actor MockRealtimeEventsService: RealtimeEventsService {
             }
         }
     }
+    
+    func startRandomMutualNotifications() async {
+        while true {
+            try? await Task.sleep(
+                nanoseconds: UInt64(
+                    Int.random(in: 8_000_000_000...15_000_000_000)
+                )
+            )
+            
+            let item = LikeItem(
+                id: UUID(),
+                userName: "Mutual \(Int.random(in: 1000...9999))",
+                avatarURL: nil,
+                isBlurred: false
+            )
+            
+            triggerMutualMatch(item)
+        }
+    }
 }

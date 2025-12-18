@@ -4,7 +4,6 @@ import Foundation
 public struct LikedYouReducer: Reducer, Sendable {
     @Dependency(\.likeYouRepository) var repository
     @Dependency(\.mainQueue) var mainQueue
-    @Dependency(\.realtimeEventsService) var realtimeEventsService
 
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
@@ -14,36 +13,18 @@ public struct LikedYouReducer: Reducer, Sendable {
             let cachedItems = repository.getData()
             let cursor = repository.getCursor()
 
-            return .merge(
-                cachedItems == nil
+            return cachedItems == nil
                 ? .send(.loadInitial)
                 : .send(.initialLoadCompleted(
                     Page(items: cachedItems!, nextCursor: cursor)
-                )),
-                .run { _ in
-                    await realtimeEventsService.startRandomInserts()
-                }
-                .cancellable(id: CancelID.generator),
-                .run { send in
-                    for await event in self.realtimeEventsService.events() {
-                        switch event {
-                        case .likedYouInserted(let item):
-                            await send(.newLikeItemReceived(item))
-                        case .mutualMatch:
-                            break // поки ігноруємо, обробимо окремо
-                        }
-                    }
-                }.cancellable(id: CancelID.realtime)
-                )
+                ))
             
         case .loadInitial:
             state.isLoading = true
-            let isBlured = state.isBlured
             
             return .run { send in
                 do {
                     try await repository.load(1, 10)
-                    repository.updateBluredState(isBlured)
                 } catch let error {
                     await send(.initialLoadFailed(message: error.localizedDescription))
                     return
@@ -105,9 +86,8 @@ public struct LikedYouReducer: Reducer, Sendable {
             state.items = page.items
             state.cursor = page.nextCursor
             state.isLoading = false
-            return .none
+            return .send(.blur(isBlured: state.isBlured))
                 .debounce(id: CancelID.initialLoadCompleted, for: .seconds(0.3), scheduler: mainQueue)
-                // !!!!!.throttle(id: CancelID.initialLoadCompleted, for: .seconds(0.3), scheduler: mainQueue, latest: true)
                 .cancellable(id: CancelID.initialLoadCompleted, cancelInFlight: true)
             
         case .nextPageCompleted(let page):
@@ -132,6 +112,8 @@ public struct LikedYouReducer: Reducer, Sendable {
             state.items = repository.getData() ?? []
             state.isBlured = isBlured
             return .none
+                .debounce(id: DebounceId.blur, for: .seconds(0.3), scheduler: mainQueue)
+                .cancellable(id: CancelID.blur, cancelInFlight: true)
             
         case .newLikeItemReceived(let newItem):
             var item = newItem
@@ -146,10 +128,11 @@ public struct LikedYouReducer: Reducer, Sendable {
             
         case .onDisappear:
             return .merge(
-                .cancel(id: CancelID.generator),
-                .cancel(id: CancelID.realtime)
+                .cancel(id: CancelID.blur),
+                .cancel(id: CancelID.initialLoadCompleted)
                 )
             
+                
         case .resetUnreadItemsCount:
             guard state.unreadItemsCount > 0 else {
                 return .none
@@ -195,11 +178,11 @@ private enum CancelID: Hashable {
     case loadInitial
     case loadNextPage(Int)
     case initialLoadCompleted
-    case realtime
-    case generator
+    case blur
 }
 
 private enum DebounceId: Hashable {
     case loadInitial
     case loadNextPage(Int)
+    case blur
 }

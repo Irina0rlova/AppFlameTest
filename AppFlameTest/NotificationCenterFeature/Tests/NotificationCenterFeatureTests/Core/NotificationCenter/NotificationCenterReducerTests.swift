@@ -47,6 +47,8 @@ final class NCReducerTests: XCTestCase {
             $0.likedYou.cursor = mockLikedItems.nextCursor
             $0.likedYou.isLoading = false
         }
+        await scheduler.advance(by: .seconds(0.3))
+        await store.receive(.likedYou(.blur(isBlured: true)))
     }
     
     func testMutualsAction() async {
@@ -77,6 +79,7 @@ final class NCReducerTests: XCTestCase {
     
     func testLikeMovesProfileToMutuals() async {
         //Given
+        let clock = TestClock()
         let item = LikeItem.mock()
         let expectedPage = Page(items: [LikeItem](), nextCursor: nil)
         let mutualsRepository = MutualsRepository()
@@ -93,9 +96,10 @@ final class NCReducerTests: XCTestCase {
         ) {
             NCReducer()
         } withDependencies: {
+            $0.continuousClock = clock
             $0.mutualsRepository = mutualsRepository
         }
-
+        
         //When
         await store.send(.likedYou(.likeTapped(id: item.id)))
 
@@ -104,8 +108,15 @@ final class NCReducerTests: XCTestCase {
         await store.receive(.likedYou(.skip(id: item.id))) {
             $0.likedYou.items = expectedPage.items
         }
+        await store.receive(.showMutualMatchNotification(item)) {
+            $0.mutualMatchBanner = "User"
+        }
+        await clock.advance(by: .seconds(10))
         await store.receive(.mutuals(.addMutual(item))){
             $0.mutuals.items = [item]
+        }
+        await store.receive(.notificationDismiss) {
+            $0.mutualMatchBanner = nil
         }
     }
     

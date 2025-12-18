@@ -15,7 +15,9 @@ final class LikedYouReducerTests: XCTestCase {
             nextCursor: 2
         )
         let store = await TestStore(
-            initialState: LikedYouReducer.State()
+            initialState: LikedYouReducer.State(
+                isBlured: false
+            )
         ) {
             LikedYouReducer()
         }
@@ -49,7 +51,8 @@ final class LikedYouReducerTests: XCTestCase {
             $0.cursor = page.nextCursor
             $0.isLoading = false
         }
-        
+        await scheduler.advance(by: .seconds(0.3))
+        await store.receive(.blur(isBlured: false))
         await store.send(.onDisappear)
         await fulfillment(of: [expectation], timeout: 5)
     }
@@ -64,7 +67,9 @@ final class LikedYouReducerTests: XCTestCase {
             nextCursor: 2
         )
         let store = await TestStore(
-            initialState: LikedYouReducer.State()
+            initialState: LikedYouReducer.State(
+                isBlured: true
+            )
         ) {
             LikedYouReducer()
         }
@@ -91,6 +96,7 @@ final class LikedYouReducerTests: XCTestCase {
             $0.cursor = page.nextCursor
             $0.isLoading = false
         }
+        await store.receive(.blur(isBlured: true))
         await store.send(.onDisappear)
     }
     
@@ -105,6 +111,7 @@ final class LikedYouReducerTests: XCTestCase {
         )
         let store = await TestStore(
             initialState: LikedYouReducer.State(
+                isBlured: true,
                 unreadItemsCount: 4
             )
         ) {
@@ -135,6 +142,8 @@ final class LikedYouReducerTests: XCTestCase {
             $0.cursor = page.nextCursor
             $0.isLoading = false
         }
+        await store.receive(.blur(isBlured: true))
+        
         await store.send(.onDisappear)
     }
     
@@ -151,7 +160,9 @@ final class LikedYouReducerTests: XCTestCase {
         )
         
         let store = await TestStore(
-            initialState: LikedYouReducer.State()
+            initialState: LikedYouReducer.State(
+                isBlured: true
+            )
         ) {
             LikedYouReducer()
         } withDependencies: {
@@ -181,7 +192,8 @@ final class LikedYouReducerTests: XCTestCase {
             $0.cursor = page.nextCursor
             $0.isLoading = false
         }
-        
+        await scheduler.advance(by: .seconds(0.3))
+        await store.receive(.blur(isBlured: true))
         await store.send(.onDisappear)
         await fulfillment(of: [expectation], timeout: 5)
     }
@@ -223,15 +235,28 @@ final class LikedYouReducerTests: XCTestCase {
     
     func testInitialLoadCompleted() async {
         //Given
+        let scheduler = DispatchQueue.test
         let page = Page(
             items: [LikeItem(id: UUID(), userName: "Item 1", avatarURL: URL(string: "https://x.com")!, isBlurred: false)],
             nextCursor: 2
         )
         
         let store = await TestStore(
-            initialState: LikedYouReducer.State()
+            initialState: LikedYouReducer.State(
+                isBlured: true
+            )
         ) {
             LikedYouReducer()
+        } withDependencies: {
+            $0.mainQueue = scheduler.eraseToAnyScheduler()
+            
+            $0.likeYouRepository.getData = {
+                page.items
+            }
+            
+            $0.likeYouRepository.getCursor = {
+                page.nextCursor
+            }
         }
         
         //When
@@ -240,6 +265,11 @@ final class LikedYouReducerTests: XCTestCase {
             $0.cursor = page.nextCursor
             $0.isLoading = false
         }
+        
+        //Then
+        await scheduler.advance(by: .seconds(0.3))
+        await store.receive(.blur(isBlured: true))
+        await store.send(.onDisappear)
     }
     
     func testLoadNextPageFetchesNextCursor() async {
@@ -540,135 +570,3 @@ final class LikedYouReducerTests: XCTestCase {
         await store.send(.resetUnreadItemsCount)
     }
 }
-    
-    
-//    func testLoadNextPage_Debounced() async {
-//        let clock = TestClock()
-//
-//        let initialPage = Page(
-//            items: [
-//                LikeItem(id: UUID(), userName: "User1", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
-//            ],
-//            nextCursor: 2
-//        )
-//
-//        let nextPage = Page(
-//            items: [
-//                LikeItem(id: UUID(), userName: "User2", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
-//            ],
-//            nextCursor: 3
-//        )
-//        
-//        let expectedPage = Page(
-//            items: initialPage.items + nextPage.items,
-//            nextCursor: 3
-//        )
-//
-//        let loadCallCount = LockIsolated(0)
-//
-//        let store = TestStore(
-//            initialState: LikedYouReducer.State(
-//                items: initialPage.items,
-//                cursor: 2,
-//                isLoading: false
-//            )
-//        ) {
-//            LikedYouReducer()
-//        } withDependencies: {
-//            $0.mainQueue = DispatchQueue.s
-//            $0.likeYouRepository.load = { _, _ in
-//                loadCallCount.withValue { $0 += 1 }
-//            }
-//            $0.likeYouRepository.getData = {
-//                expectedPage.items
-//            }
-//            $0.likeYouRepository.getCursor = {
-//                expectedPage.nextCursor
-//            }
-//        }
-//
-//        await store.send(.loadNextPage)
-//        await store.send(.loadNextPage)
-//        await store.send(.loadNextPage)
-//
-//        XCTAssertEqual(loadCallCount.value, 0)
-//
-//        await clock.advance(by: .milliseconds(299))
-//        XCTAssertEqual(loadCallCount.value, 0)
-//
-//        await clock.advance(by: .milliseconds(1))
-//
-//        XCTAssertEqual(loadCallCount.value, 1)
-//
-//        await store.receive(.nextPageCompleted(expectedPage)) {
-//            $0.items = initialPage.items + nextPage.items
-//            $0.cursor = expectedPage.nextCursor
-//            $0.isLoading = false
-//        }
-//    }
-    
-    /*func testDebounceOnLoadInitial() async {
-        let expectation = expectation(description: "debounce triggered")
-        
-        let initialPage = Page(
-            items: [
-                LikeItem(id: UUID(), userName: "User1", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
-            ],
-            nextCursor: 2
-        )
-
-//        let nextPage = Page(
-//            items: [
-//                LikeItem(id: UUID(), userName: "User2", avatarURL: URL(string: "https://x.com")!, isBlurred: false)
-//            ],
-//            nextCursor: 3
-//        )
-//        
-//        let expectedPage = Page(
-//            items: initialPage.items + nextPage.items,
-//            nextCursor: 3
-//        )
-        
-        let loadCallCount = LockIsolated(0)
-            
-        let store = await TestStore(
-            initialState: LikedYouReducer.State()
-        ) {
-            LikedYouReducer()
-        } withDependencies: {
-            $0.likeYouRepository.load = { _, _ in
-                loadCallCount.withValue { $0 += 1 }
-                expectation.fulfill()
-            }
-
-            $0.likeYouRepository.getData = {
-                initialPage.items
-            }
-
-            $0.likeYouRepository.getCursor = {
-                initialPage.nextCursor
-            }
-        }
-        
-        await store.send(.loadInitial) {
-            $0.isLoading = true
-        }
-        await store.send(.loadInitial)
-        await store.send(.loadInitial)
-        
-        XCTAssertEqual(loadCallCount.value, 0)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            //expectation.fulfill()
-            XCTAssertEqual(loadCallCount.value, 1)
-        }
-        
-        await store.receive(.nextPageCompleted(initialPage)) {
-            $0.items = initialPage.items
-            $0.cursor = initialPage.nextCursor
-            $0.isLoading = false
-        }
-        
-        await fulfillment(of: [expectation], timeout: 1)
-    }
-*/

@@ -3,6 +3,7 @@ import Foundation
 
 struct RealtimeEventsServiceDependency {
     var startRandomInserts: @Sendable () async -> Void
+    var startRandomMutualNotifications: @Sendable () async -> Void
     var events: @Sendable () -> AsyncStream<RealtimeEvent>
 }
 
@@ -20,6 +21,9 @@ private enum RealtimeEventsServiceKey: DependencyKey {
         startRandomInserts: {
             await service.startRandomInserts()
         },
+        startRandomMutualNotifications: {
+            await service.startRandomMutualNotifications()
+        },
         events: {
             service.events
         }
@@ -27,6 +31,7 @@ private enum RealtimeEventsServiceKey: DependencyKey {
     
     static let testValue: RealtimeEventsServiceDependency = .init(
         startRandomInserts: {},
+        startRandomMutualNotifications: {},
         events: { AsyncStream { $0.finish() }}
     )
 }

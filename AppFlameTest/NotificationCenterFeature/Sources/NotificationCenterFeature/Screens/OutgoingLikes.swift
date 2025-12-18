@@ -4,8 +4,6 @@ import ComposableArchitecture
 public struct OutgoingLikesScreen: View {
     let store: StoreOf<NCReducer>
     
-    @State private var selectedTab = 0
-    
     public init() {
         self.store = Store(
             initialState: NCReducer.State(
@@ -21,9 +19,14 @@ public struct OutgoingLikesScreen: View {
             ZStack(alignment: .bottom) {
                 ZStack {
                     VStack {
-                        buttonsView()
+                        buttonsView(
+                            badgeCount: viewStore.likedYouBadgeCount,
+                            selectedTab: viewStore.state.selectedTab.rawValue,
+                            likedYouTapped: { viewStore.send(.tabSelected(NCReducer.Tabs.likedYou)) },
+                            mutualsTapped: { viewStore.send(.tabSelected(NCReducer.Tabs.mutuals)) }
+                        )
                         Spacer()
-                        selectedTabView()
+                        selectedTabView(selectedTab: viewStore.state.selectedTab.rawValue)
                         Spacer()
                     }
                     
@@ -43,19 +46,34 @@ public struct OutgoingLikesScreen: View {
                         .animation(.easeInOut, value: endDate)
                         .zIndex(1)
                 }
+                
+                if let banner = viewStore.mutualMatchBanner {
+                    bannerView(banner) {
+                        store.send(.tapMutualMatchNotification)
+                    }
+                }
             }
             .onAppear {
                 store.send(.appBecameActive)
             }
+            .task {
+                viewStore.send(.onAppear)
+            }
+            .onDisappear {
+                store.send(.onDismiss)
+            }
         }
     }
     
-    private func buttonsView() -> some View {
-        WithViewStore(store, observe: \.likedYou.unreadItemsCount) { viewStore in
+    private func buttonsView(
+        badgeCount: Int,
+        selectedTab: Int,
+        likedYouTapped: @escaping () -> Void,
+        mutualsTapped: @escaping () -> Void
+    ) -> some View {
             HStack {
                 Button(action: {
-                    selectedTab = 0
-                    store.send(.likedYou(.resetUnreadItemsCount))
+                    likedYouTapped()
                 }) {
                     ZStack(alignment: .topTrailing) {
                         Text("Liked You")
@@ -64,15 +82,15 @@ public struct OutgoingLikesScreen: View {
                             .foregroundColor(selectedTab == 0 ? .white : .black)
                             .cornerRadius(10)
                         
-                        if viewStore.state > 0 {
-                            badgeView(count: viewStore.state)
+                        if badgeCount > 0 {
+                            badgeView(count: badgeCount)
                                 .offset(x: 8, y: -8)
                         }
                     }
                 }
                 
                 Button(action: {
-                    selectedTab = 1
+                    mutualsTapped()
                 }) {
                     Text("Mutuals")
                         .padding()
@@ -83,9 +101,25 @@ public struct OutgoingLikesScreen: View {
             }
             .padding()
         }
+    
+    private func bannerView(_ banner: String?, onTap: @escaping () -> Void) -> some View {
+        VStack {
+            Text("🎉 Mutual Match: \(banner)!")
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .onTapGesture {
+                    onTap()
+                }
+            Spacer()
+        }
+        .padding()
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .animation(.easeInOut, value: banner)
     }
     
-    private func selectedTabView() -> AnyView {
+    private func selectedTabView(selectedTab: Int) -> AnyView {
         if selectedTab == 0 {
             return AnyView(
                 LikedYouScreen(

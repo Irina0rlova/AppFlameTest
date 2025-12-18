@@ -1,15 +1,44 @@
 import ComposableArchitecture
 import Foundation
 
-public struct NCReducer: Reducer {
+public struct NCReducer: Reducer, Sendable {
+    @Dependency(\.realtimeEventsService) var realtimeEventsService
+    @Dependency(\.ncStateStore) var ncStateStore
+    @Dependency(\.continuousClock) var clock
+    
     private let likedYouReducer = LikedYouReducer()
     private let mutualsReducer = MutualsReducer()
-    private let ncStateStore = NCStateStore()
     
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
+        case .onAppear:
+            return .merge(
+                .run { _ in
+                    await realtimeEventsService.startRandomInserts()
+                }
+                    .cancellable(id: CancelID.generator),
+                .run { send in
+                    for await event in self.realtimeEventsService.events() {
+                        switch event {
+                        case .likedYouInserted(let item):
+                            await send(.likedYou(.newLikeItemReceived(item)))
+                        case .mutualMatch(let item):
+                            await send(.showMutualMatchNotification(item))
+                        }
+                    }
+                }.cancellable(id: CancelID.realtime)
+            )
+            
         case .likedYou(.likeConfirmed(let item)):
-            return .send(.mutuals(.addMutual(item)))
+            return .merge(
+                .send(.showMutualMatchNotification(item)),
+                .run { send in
+                    try await clock.sleep(for: .seconds(10))
+                    await send(.notificationDismiss)
+                }
+                    .cancellable(id: CancelID.notification, cancelInFlight: true),
+                .send(.mutuals(.addMutual(item)))
+                )
             
         case .likedYou(let likedYouAction):
             return likedYouReducer
@@ -26,7 +55,7 @@ public struct NCReducer: Reducer {
                 return .none
             }
             
-            let endDate = Date().addingTimeInterval(15)
+            let endDate = Date().addingTimeInterval(120)
             
             state.unblurEndDate = endDate
             state.blurPolicy = .alwaysUnblurred
@@ -47,7 +76,7 @@ public struct NCReducer: Reducer {
             return .merge(
                 .cancel(id: ClockID.cancel),
                 .send(.likedYou(.blur(isBlured: true)))
-                )
+            )
             
         case .timerTick(let now):
             guard let endDate = state.unblurEndDate else {
@@ -72,6 +101,34 @@ public struct NCReducer: Reducer {
                 }
             }
             return .none
+            
+        case .showMutualMatchNotification(let item):
+            state.mutualMatchBanner = item.userName
+            return .none
+         
+        case .notificationDismiss:
+            state.mutualMatchBanner = nil
+            return .none
+            
+        case .tapMutualMatchNotification:
+            state.mutualMatchBanner = nil
+            return .send(.tabSelected(.mutuals))
+            
+        case .tabSelected(let tab):
+            state.selectedTab = tab
+            if tab == .likedYou {
+                return .send(.likedYou(.resetUnreadItemsCount))
+            }
+            return .none
+            
+        case .onDismiss:
+            return
+                .merge(
+                    .cancel(id: ClockID.cancel),
+                    .cancel(id: CancelID.generator),
+                    .cancel(id: CancelID.realtime),
+                    .cancel(id: CancelID.notification)
+                )
         }
     }
     
@@ -91,9 +148,15 @@ public struct NCReducer: Reducer {
         
         var blurPolicy: BlurPolicy = .alwaysBlurred
         var unblurEndDate: Date?
+        
+        var mutualMatchBanner: String? = nil
+        var selectedTab: Tabs = .likedYou
+        
     }
     
     public enum Action: Equatable {
+        case onAppear
+        case onDismiss
         case likedYou(LikedYouReducer.Action)
         case mutuals(MutualsReducer.Action)
         
@@ -102,6 +165,11 @@ public struct NCReducer: Reducer {
         case appBecameActive
         
         case timerTick(Date)
+        
+        case showMutualMatchNotification(LikeItem)
+        case notificationDismiss
+        case tapMutualMatchNotification
+        case tabSelected(Tabs)
     }
     
     enum BlurPolicy: Equatable {
@@ -110,9 +178,20 @@ public struct NCReducer: Reducer {
         case unblurAfterDelay(TimeInterval)
     }
     
+    public enum Tabs: Int {
+        case likedYou
+        case mutuals
+    }
+    
     private enum ClockID: Hashable {
         case cancel
         case debounce
+    }
+    
+    private enum CancelID: Hashable {
+        case realtime
+        case generator
+        case notification
     }
 }
 
