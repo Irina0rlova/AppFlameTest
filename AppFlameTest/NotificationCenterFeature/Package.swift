@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "NotificationCenterFeature",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v18)
     ],
     products: [
         .library(

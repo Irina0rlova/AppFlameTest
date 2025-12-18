@@ -9,6 +9,7 @@ protocol Repository {
 
 protocol LikeYouRepositoryProtocol {
     func updateBluredState(isBlured: Bool)
+    func addNewItem(_ item: LikeItem) -> Bool
 }
 
 public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: LikeYouRepositoryProtocol, Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
@@ -70,6 +71,19 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
         
         localApi.clear()
         localApi.createOrUpdate(data: items)
+    }
+    
+    public func addNewItem(_ item: LikeItem) -> Bool {
+        var items = localApi.get() ?? []
+        if !items.contains(where: { $0.id == item.id }) {
+            items.insert(item, at: 0)
+            localApi.clear()
+            localApi.createOrUpdate(data: items)
+            
+            return true
+        }
+        
+        return false
     }
 }
 

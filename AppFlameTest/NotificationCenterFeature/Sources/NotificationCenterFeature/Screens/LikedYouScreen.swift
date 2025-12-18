@@ -20,15 +20,16 @@ public struct LikedYouScreen: View {
                 },
                 onLike: { id in
                     viewStore.send(.likeTapped(id: id))
+                },
+                onScrolledToTop: {
+                    viewStore.send(.resetUnreadItemsCount)
                 }
             )
             .task {
                 viewStore.send(.onAppear)
             }
-            .overlay {
-//                if viewStore.isLoading {
-//                    ProgressView()
-//                }
+            .onDisappear {
+                viewStore.send(.onDisappear)
             }
         }
     }

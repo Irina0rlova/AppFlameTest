@@ -5,6 +5,7 @@ public struct GridView: View {
     let onLoadMore: () -> Void
     let onSkip: (_ id: UUID) -> Void
     let onLike: (_ id: UUID) -> Void
+    let onScrolledToTop: () -> Void
     
     private var columns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
@@ -34,16 +35,22 @@ public struct GridView: View {
                         onSkip: onSkip,
                         onLike: onLike
                     )
-                        .frame(maxWidth: .infinity)
-                        .onAppear {
-                            if item == items.last {
-                                onLoadMore()
-                            }
+                    .onAppear {
+                        if item == items.last {
+                            onLoadMore()
                         }
+                    }
                 }
             }
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
+        }
+        .onScrollGeometryChange(for: CGFloat.self) { geo in
+            geo.contentOffset.y
+        } action: { _, offset in
+            if offset <= 0 {
+                onScrolledToTop()
+            }
         }
     }
 }

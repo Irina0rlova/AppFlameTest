@@ -51,28 +51,38 @@ public struct OutgoingLikesScreen: View {
     }
     
     private func buttonsView() -> some View {
-        HStack {
-            Button(action: {
-                selectedTab = 0
-            }) {
-                Text("Liked You")
-                    .padding()
-                    .background(selectedTab == 0 ? Color.black : Color.clear)
-                    .foregroundColor(selectedTab == 0 ? .white : .black)
-                    .cornerRadius(10)
+        WithViewStore(store, observe: \.likedYou.unreadItemsCount) { viewStore in
+            HStack {
+                Button(action: {
+                    selectedTab = 0
+                    store.send(.likedYou(.resetUnreadItemsCount))
+                }) {
+                    ZStack(alignment: .topTrailing) {
+                        Text("Liked You")
+                            .padding()
+                            .background(selectedTab == 0 ? Color.black : Color.clear)
+                            .foregroundColor(selectedTab == 0 ? .white : .black)
+                            .cornerRadius(10)
+                        
+                        if viewStore.state > 0 {
+                            badgeView(count: viewStore.state)
+                                .offset(x: 8, y: -8)
+                        }
+                    }
+                }
+                
+                Button(action: {
+                    selectedTab = 1
+                }) {
+                    Text("Mutuals")
+                        .padding()
+                        .background(selectedTab == 1 ? Color.black : Color.clear)
+                        .foregroundColor(selectedTab == 1 ? .white : .black)
+                        .cornerRadius(10)
+                }
             }
-            
-            Button(action: {
-                selectedTab = 1
-            }) {
-                Text("Mutuals")
-                    .padding()
-                    .background(selectedTab == 1 ? Color.black : Color.clear)
-                    .foregroundColor(selectedTab == 1 ? .white : .black)
-                    .cornerRadius(10)
-            }
+            .padding()
         }
-        .padding()
     }
     
     private func selectedTabView() -> AnyView {
@@ -112,6 +122,16 @@ public struct OutgoingLikesScreen: View {
                     .cornerRadius(12)
             }
         }
+    }
+    
+    private func badgeView(count: Int) -> some View {
+        Text("\(count)")
+            .font(.caption2)
+            .foregroundColor(.white)
+            .padding(6)
+            .background(Color.red)
+            .clipShape(Circle())
+            .minimumScaleFactor(0.5)
     }
 }
 

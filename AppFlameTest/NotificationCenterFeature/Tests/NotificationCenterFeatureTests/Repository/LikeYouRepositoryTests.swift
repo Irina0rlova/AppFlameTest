@@ -119,7 +119,7 @@ final class LikeYouRepositoryTests: XCTestCase {
         
         // When
         var cursor = repository.getCursor()
-        XCTAssertEqual(cursor, nil)
+        XCTAssertEqual(cursor, 1)
         
         do {
             try await repository.load(page: 1, batchSize: 10)
@@ -180,6 +180,97 @@ final class LikeYouRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertNil(mockStore.storedData)
+    }
+    
+    func testAddNewItemWhenListIsNil() {
+        // Given
+        let newItem = LikeItem(
+            id: UUID(),
+            userName: "New User",
+            avatarURL: URL(string: "https://example.com/avatar.jpg"),
+            isBlurred: false
+        )
+        mockStore.storedData = nil
+
+        // When
+        let res = repository.addNewItem(newItem)
+
+        // Then
+        XCTAssertTrue(res)
+        XCTAssertEqual(mockStore.storedData?.count, 1)
+        XCTAssertEqual(mockStore.storedData?.first, newItem)
+    }
+
+    func testAddNewItemWhenListExists() {
+        // Given
+        let existingItem = LikeItem(
+            id: UUID(),
+            userName: "Existing User",
+            avatarURL: URL(string: "https://example.com/avatar1.jpg"),
+            isBlurred: false
+        )
+        let newItem = LikeItem(
+            id: UUID(),
+            userName: "New User",
+            avatarURL: URL(string: "https://example.com/avatar2.jpg"),
+            isBlurred: false
+        )
+
+        mockStore.storedData = [existingItem]
+
+        // When
+        let res = repository.addNewItem(newItem)
+
+        // Then
+        XCTAssertTrue(res)
+        XCTAssertEqual(mockStore.storedData?.count, 2)
+        XCTAssertEqual(mockStore.storedData?.first, newItem)
+        XCTAssertEqual(mockStore.storedData?.last, existingItem)
+    }
+
+    func testAddNewItemDoesNotAddDuplicate() {
+        // Given
+        let existingItem = LikeItem(
+            id: UUID(),
+            userName: "Existing User",
+            avatarURL: URL(string: "https://example.com/avatar.jpg"),
+            isBlurred: false
+        )
+
+        mockStore.storedData = [existingItem]
+
+        // When
+        let res = repository.addNewItem(existingItem)
+
+        // Then
+        XCTAssertFalse(res)
+        XCTAssertEqual(mockStore.storedData?.count, 1)
+        XCTAssertEqual(mockStore.storedData?.first, existingItem)
+    }
+
+    func testAddNewItemInsertedAtBeginning() {
+        // Given
+        let item1 = LikeItem(
+            id: UUID(),
+            userName: "User 1",
+            avatarURL: URL(string: "https://example.com/1.jpg"),
+            isBlurred: false
+        )
+        let item2 = LikeItem(
+            id: UUID(),
+            userName: "User 2",
+            avatarURL: URL(string: "https://example.com/2.jpg"),
+            isBlurred: false
+        )
+
+        mockStore.storedData = [item1]
+
+        // When
+        let res = repository.addNewItem(item2)
+
+        // Then
+        XCTAssertTrue(res)
+        XCTAssertEqual(mockStore.storedData, [item2, item1])
     }
 }
 

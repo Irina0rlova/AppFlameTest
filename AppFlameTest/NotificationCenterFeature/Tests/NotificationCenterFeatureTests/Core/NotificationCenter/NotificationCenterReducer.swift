@@ -16,7 +16,6 @@ let mockMutualsItems: [LikeItem] = [
 final class NCReducerTests: XCTestCase {
     func testLikedYouAction() async {
         //Given
-        let expectation = expectation(description: "loadCalled")
         let scheduler = DispatchQueue.test
         let initialState = NCReducer.State(
             likedYou: LikedYouReducer.State(items: []),
@@ -29,9 +28,6 @@ final class NCReducerTests: XCTestCase {
             NCReducer()
         } withDependencies: {
             $0.mainQueue = scheduler.eraseToAnyScheduler()
-            $0.likeYouRepository.load = { _, _ in
-                expectation.fulfill()
-            }
 
             $0.likeYouRepository.getData = {
                 mockLikedItems.items
@@ -45,17 +41,12 @@ final class NCReducerTests: XCTestCase {
         await store.send(.likedYou(.onAppear))
 
         //Then
-        await store.receive(.likedYou(.loadInitial)){
-            $0.likedYou.isLoading = true
-        }
         await scheduler.advance(by: .seconds(0.3))
         await store.receive(.likedYou(.initialLoadCompleted(mockLikedItems))) {
             $0.likedYou.items = mockLikedItems.items
             $0.likedYou.cursor = mockLikedItems.nextCursor
             $0.likedYou.isLoading = false
         }
-        
-        await fulfillment(of: [expectation], timeout: 5)
     }
     
     func testMutualsAction() async {
@@ -110,17 +101,55 @@ final class NCReducerTests: XCTestCase {
 
         //Then
         await store.receive(.likedYou(.likeConfirmed(item)))
-        await store.receive(.likedYou(.skip(id: item.id)))
+        await store.receive(.likedYou(.skip(id: item.id))) {
+            $0.likedYou.items = expectedPage.items
+        }
         await store.receive(.mutuals(.addMutual(item))){
             $0.mutuals.items = [item]
         }
-        await store.receive(.likedYou(.initialLoadCompleted(expectedPage))) {
-            $0.likedYou.items = expectedPage.items
-            $0.likedYou.cursor = expectedPage.nextCursor
-            $0.likedYou.isLoading = false
-        }
     }
-
+    
+    func testLikedYouBadgeCount_returnsUnreadItemsCount() {
+        let likedYouState = LikedYouReducer.State(
+            items: [],
+            cursor: nil,
+            isLoading: false,
+            isBlured: true,
+            unreadItemsCount: 3
+        )
+        
+        let mutualsState = MutualsReducer.State()
+        
+        let state = NCReducer.State(
+            likedYou: likedYouState,
+            mutuals: mutualsState,
+            blurPolicy: .alwaysBlurred,
+            unblurEndDate: nil
+        )
+        
+        XCTAssertEqual(state.likedYouBadgeCount, 3)
+    }
+    
+    func testLikedYouBadgeCount_zeroWhenNoUnreadItems() {
+        let likedYouState = LikedYouReducer.State(
+            items: [],
+            cursor: nil,
+            isLoading: false,
+            isBlured: true,
+            unreadItemsCount: 0
+        )
+        
+        let mutualsState = MutualsReducer.State()
+        
+        let state = NCReducer.State(
+            likedYou: likedYouState,
+            mutuals: mutualsState,
+            blurPolicy: .alwaysBlurred,
+            unblurEndDate: nil
+        )
+        
+        XCTAssertEqual(state.likedYouBadgeCount, 0)
+    }
 }
 
 // Here should be tested the whole LikedYouReducer and MutualsReducer

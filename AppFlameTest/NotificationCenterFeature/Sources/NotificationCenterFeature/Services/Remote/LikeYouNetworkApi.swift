@@ -6,7 +6,7 @@ public class LikeYouNetworkApi: NetworkApi {
     public func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
         do {
             let res = try await generateLikeItems(page: page, batchSize: batchSize)
-            let nextCursor = page < 3 ? (page + 1) : nil
+            let nextCursor = page < 5 ? (page + 1) : nil
             return Page(items: res, nextCursor: nextCursor)
         } catch {
             throw error

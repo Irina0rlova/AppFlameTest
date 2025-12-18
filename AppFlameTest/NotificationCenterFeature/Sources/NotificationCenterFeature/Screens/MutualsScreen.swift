@@ -14,7 +14,8 @@ public struct MutualsScreen: View {
                 items: viewStore.items,
                 onLoadMore: {},
                 onSkip: { id in },
-                onLike: { id in }
+                onLike: { id in },
+                onScrolledToTop: {}
             )
             .onAppear {
                 viewStore.send(.onAppear)

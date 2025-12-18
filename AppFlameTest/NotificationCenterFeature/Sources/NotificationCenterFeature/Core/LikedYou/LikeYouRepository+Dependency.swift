@@ -7,6 +7,7 @@ struct LikeYouRepositoryDependency {
     var getCursor: @Sendable () -> Int?
     var removeItem: @Sendable (UUID) async -> Void
     var updateBluredState: @Sendable (Bool) -> Void
+    var addNewItem: @Sendable (LikeItem) -> Bool
 }
 
 private enum LikeYouRepositoryKey: DependencyKey {
@@ -27,6 +28,9 @@ private enum LikeYouRepositoryKey: DependencyKey {
         },
         updateBluredState: { blur in
             repository.updateBluredState(isBlured: blur)
+        },
+        addNewItem: { item in
+            repository.addNewItem(item)
         }
     )
     
@@ -35,7 +39,8 @@ private enum LikeYouRepositoryKey: DependencyKey {
         getData: { [] },
         getCursor:  { nil },
         removeItem: { _ in },
-        updateBluredState: { _ in }
+        updateBluredState: { _ in },
+        addNewItem: { _ in true }
     )
 }
 

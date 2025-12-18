@@ -139,3 +139,9 @@ extension NCReducer.Action: CasePathable {
     }
     public static var allCasePaths: AllCasePaths { AllCasePaths() }
 }
+
+extension NCReducer.State {
+    var likedYouBadgeCount: Int {
+        likedYou.unreadItemsCount
+    }
+}
