@@ -1,13 +1,11 @@
 import Foundation
 
 public class LikeYouNetworkApi: NetworkApi {
-    public typealias T = LikeItem
-    
-    public func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
+    public func fetchData(page: Int, batchSize: Int) async throws -> (data: [UserModel]?, nextCursor: Int?) {
         do {
             let res = try await generateLikeItems(page: page, batchSize: batchSize)
             let nextCursor = page < 5 ? (page + 1) : nil
-            return Page(items: res, nextCursor: nextCursor)
+            return (data: res, nextCursor: nextCursor)
         } catch {
             throw error
         }
@@ -21,22 +19,20 @@ public class LikeYouNetworkApi: NetworkApi {
         }
     }
     
-    private func generateLikeItems(page: Int, batchSize: Int) async throws -> [LikeItem] {
-        var likeItems: [LikeItem] = []
+    private func generateLikeItems(page: Int, batchSize: Int) async throws -> [UserModel] {
+        var users: [UserModel] = []
         
         for i in ((page - 1) * batchSize)..<(page * batchSize) {
-            let likeItem = LikeItem(
+            let likeItem = UserModel(
                 id: UUID(),
                 userName: "User \(i)",
-                avatarURL: URL(string: "https://randomuser.me/api/portraits/men/\(i+1).jpg"),
-                isBlurred: true
+                avatarURL: "https://randomuser.me/api/portraits/men/\(i+1).jpg",
             )
-            likeItems.append(likeItem)
+            users.append(likeItem)
         }
         
-        try await Task.sleep(nanoseconds:3 * 1_000_000_000)
-        print("generateLikeItems was called")
-        return likeItems
+        try await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+        return users
     }
 }
 

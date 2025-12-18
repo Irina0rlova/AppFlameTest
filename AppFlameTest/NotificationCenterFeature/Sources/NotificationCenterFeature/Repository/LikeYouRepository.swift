@@ -12,11 +12,12 @@ protocol LikeYouRepositoryProtocol {
     func addNewItem(_ item: LikeItem) -> Bool
 }
 
-public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: LikeYouRepositoryProtocol, Repository where Api.T == LikeItem, Store.T == [LikeItem]? {
+public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sendable>: LikeYouRepositoryProtocol, Repository where Store.T == [LikeItem]? {
     typealias T = [LikeItem]?
     
     private let api: Api
     private let localApi: Store
+    private let mapper: LikedYouMapper
     
     private var cursor: Int? = 1
     
@@ -26,6 +27,7 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
     ) {
         self.api = api
         self.localApi = localApi
+        mapper = LikedYouMapper()
     }
 
     public func load(page: Int, batchSize: Int) async throws {
@@ -40,7 +42,8 @@ public class LikeYouRepository<Api: NetworkApi & Sendable, Store: LocalApi & Sen
             localApi.clear()
         }
         
-        let likeItems = try await api.fetchData(page: page, batchSize: batchSize)
+        let result = try await api.fetchData(page: page, batchSize: batchSize)
+        let likeItems = Page(items: mapper.map(result.data), nextCursor: result.nextCursor)
         localApi.createOrUpdate(data: (likeItems.items))
         self.cursor = likeItems.nextCursor
     }

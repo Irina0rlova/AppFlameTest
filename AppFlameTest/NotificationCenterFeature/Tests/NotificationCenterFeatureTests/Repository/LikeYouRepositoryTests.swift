@@ -24,13 +24,19 @@ final class LikeYouRepositoryTests: XCTestCase {
     }
     
     func testLoadSuccessfullyFetchesAndStoresData() async {
+        let id1 = UUID()
+        let id2 = UUID()
+        let users: [UserModel] = [
+            UserModel(id: id1, userName: "User 1", avatarURL: "https://example.com/avatar1.jpg"),
+            UserModel(id: id2, userName: "User 2", avatarURL: "https://example.com/avatar2.jpg")
+        ]
         let likeItems: [LikeItem] = [
-            LikeItem(id: UUID(), userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: false),
-            LikeItem(id: UUID(), userName: "User 2", avatarURL: URL(string: "https://example.com/avatar2.jpg"), isBlurred: false)
+            LikeItem(id: id1, userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: true),
+            LikeItem(id: id2, userName: "User 2", avatarURL: URL(string: "https://example.com/avatar2.jpg"), isBlurred: true)
         ]
         
         mockApi.mockFetchDataClosure = { _, _ in
-            Page(items: likeItems, nextCursor: 3)
+            (data: users,nextCursor: 3)
         }
         mockStore.storedData = nil
         
@@ -49,16 +55,22 @@ final class LikeYouRepositoryTests: XCTestCase {
     }
     
     func testLoadSuccessfullyFetchesAndUpdateData() async {
+        let id1 = UUID()
+        let id2 = UUID()
+        let users: [UserModel] = [
+            UserModel(id: id1, userName: "User 1", avatarURL: "https://example.com/avatar1.jpg"),
+            UserModel(id: id2, userName: "User 2", avatarURL: "https://example.com/avatar2.jpg")
+        ]
         let likeItems: [LikeItem] = [
-            LikeItem(id: UUID(), userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: false),
-            LikeItem(id: UUID(), userName: "User 2", avatarURL: URL(string: "https://example.com/avatar2.jpg"), isBlurred: false)
+            LikeItem(id: id1, userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: true),
+            LikeItem(id: id2, userName: "User 2", avatarURL: URL(string: "https://example.com/avatar2.jpg"), isBlurred: true)
         ]
         
         mockApi.mockFetchDataClosure = { _, _ in
-            Page(items: likeItems, nextCursor: 3)
+            (data: users,nextCursor: 3)
         }
         mockStore.storedData = [
-            LikeItem(id: UUID(), userName: "User 5", avatarURL: URL(string: "https://example.com/avatar5.jpg"), isBlurred: false)]
+            LikeItem(id: UUID(), userName: "User 5", avatarURL: URL(string: "https://example.com/avatar5.jpg"), isBlurred: true)]
         
         let expectation = self.expectation(description: "Completion called")
         let store = mockStore // avoid capturing self in @Sendable closure
@@ -97,7 +109,7 @@ final class LikeYouRepositoryTests: XCTestCase {
     func testGetDataReturnsDataFromLocalApi() {
         // Given
         let likeItems: [LikeItem] = [
-            LikeItem(id: UUID(), userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: false)
+            LikeItem(id: UUID(), userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: true)
         ]
         mockStore.storedData = likeItems
         
@@ -110,11 +122,11 @@ final class LikeYouRepositoryTests: XCTestCase {
     
     func testGetDataReturnsCursor() async {
         // Given
-        let likeItems: [LikeItem] = [
-            LikeItem(id: UUID(), userName: "User 1", avatarURL: URL(string: "https://example.com/avatar1.jpg"), isBlurred: false)
+        let users: [UserModel] = [
+            UserModel(id: UUID(), userName: "User 1", avatarURL: "https://example.com/avatar1.jpg")
         ]
         mockApi.mockFetchDataClosure = { _, _ in
-            Page(items: likeItems, nextCursor: 3)
+            (data: users,nextCursor: 3)
         }
         
         // When
@@ -275,12 +287,10 @@ final class LikeYouRepositoryTests: XCTestCase {
 }
 
 final class MockApi: NetworkApi, @unchecked Sendable {
-    typealias T = LikeItem
-    
-    var mockFetchDataClosure: ((Int, Int) throws -> Page<LikeItem>)?
+    var mockFetchDataClosure: ((Int, Int) throws -> (data: [UserModel]?, nextCursor: Int?))?
     var mockRemoveItemClosure: ((UUID) async -> Void)?
     
-    func fetchData(page: Int, batchSize: Int) async throws -> Page<LikeItem> {
+    func fetchData(page: Int, batchSize: Int) async throws -> (data: [UserModel]?, nextCursor: Int?) {
         try mockFetchDataClosure!(page, batchSize)
     }
     
