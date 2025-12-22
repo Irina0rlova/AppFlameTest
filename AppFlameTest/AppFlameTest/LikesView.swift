@@ -6,7 +6,3 @@ struct LikesView: View {
         OutgoingLikesScreen()
     }
 }
-
-#Preview {
-    LikesView()
-}

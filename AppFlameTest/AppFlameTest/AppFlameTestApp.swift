@@ -1,10 +1,3 @@
-//
-//  AppFlameTestApp.swift
-//  AppFlameTest
-//
-//  Created by Iryna Orlova on 10.12.2025.
-//
-
 import SwiftUI
 
 @main
