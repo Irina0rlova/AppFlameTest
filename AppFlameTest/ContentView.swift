@@ -3,7 +3,6 @@ import NotificationCenterFeature
 
 struct ContentView: View {
     @State private var selectedTab = 3 // Start with the 4th tab (zero-based)
-    @State private var notificationCount = 5 // Example notification count
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -23,7 +22,7 @@ struct ContentView: View {
                 }
                 .tag(2)
             NavigationStack {
-                NotificationCenterFeature().makeModuleView()
+                LikesView()
                     .navigationTitle("Likes")
                     .navigationBarTitleDisplayMode(.large)
             }
@@ -31,7 +30,6 @@ struct ContentView: View {
                 Image("heart")
             }
             .tag(3)
-            .badge(notificationCount)
             Text("Profile")
                 .tabItem {
                     Image("person")
